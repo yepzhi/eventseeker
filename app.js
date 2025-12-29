@@ -144,36 +144,19 @@ function updateServerStatus(isError = false) {
 
     // Checking if we have valid data yet
     if (!lastScrapeTime || isNaN(lastScrapeTime.getTime())) {
-        el.innerText = "Connecting...";
+        el.innerText = "Next scan: 5AM";
         if (dot) dot.style.backgroundColor = '#eab308'; // Yellow
         return;
     }
 
-    // Success State
+    // Success State - Show "Last: Date, Time • Next: 5AM"
     if (dot) dot.style.backgroundColor = '#22c55e'; // Green
     if (badge) badge.style.borderColor = 'rgba(255, 255, 255, 0.05)';
 
-    // Countdown Logic
-    if (window.nextScanTime) {
-        const now = new Date();
-        const diffMs = window.nextScanTime - now;
+    const options = { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
+    const formattedDate = lastScrapeTime.toLocaleString('en-US', options);
 
-        if (diffMs > 0) {
-            const hours = Math.floor(diffMs / (1000 * 60 * 60));
-            const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-            if (el) el.innerText = `Next Scan: ${hours}h ${mins}m`;
-            return;
-        }
-    }
-
-    const now = new Date();
-    const diffMs = now - lastScrapeTime;
-    const diffMins = Math.floor(diffMs / 60000);
-
-    let text = translations[currentLang].updatedAgo;
-    text = text.replace('{min}', diffMins);
-
-    if (el) el.innerText = text;
+    if (el) el.innerText = `Last: ${formattedDate} • Next: 5AM`;
 }
 // Export for translations.js to call if language changes
 window.updateServerStatus = updateServerStatus;
@@ -209,11 +192,8 @@ async function filterEvents() {
 
     let eventsToDisplay = [];
 
-    // 1. Try Fetching from Backend
     // 1. Try Fetching from Backend (STREAMING)
-    const visor = document.getElementById('logVisor');
-    visor.style.display = 'block';
-    visor.innerHTML = '<div class="log-line">> Connecting to EventSeeker Engine...</div>';
+    // Log visor removed - status shown in badge only
 
     // Clear previous results temporarily or show them as "old"
     // grid.innerHTML = ... (Already showing loading)
@@ -226,21 +206,12 @@ async function filterEvents() {
             const data = JSON.parse(event.data);
 
             if (data.type === 'log') {
-                // VISOR UPDATE
-                const line = document.createElement('div');
-                line.className = `log-line ${data.level || ''}`;
-                line.innerText = `> ${data.message}`;
-                visor.appendChild(line);
-                visor.scrollTop = visor.scrollHeight;
-
-                // BADGE UPDATE (Progress)
+                // Badge progress update only (visor removed)
                 if (data.progress !== undefined && data.progress !== null) {
                     const el = document.getElementById('updateText');
                     const dot = document.querySelector('.pulse-dot');
                     if (el) el.innerText = `AI Scan: ${data.progress}%`;
                     if (dot) dot.style.backgroundColor = '#eab308'; // Yellow
-                } else if (data.message.includes('Connected')) {
-                    // handled by init
                 }
             }
 
