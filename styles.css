@@ -385,12 +385,13 @@ body::before {
 }
 
 .footer {
-    text-align: right;
+    text-align: center;
     margin-top: 40px;
     margin-bottom: 20px;
     display: flex;
-    justify-content: flex-end;
-    padding-right: 20px;
+    flex-direction: column;
+    align-items: center;
+    gap: 12px;
 }
 
 .footer-btn {
@@ -414,6 +415,29 @@ body::before {
     border-color: #3b82f6;
     box-shadow: 0 0 12px rgba(59, 130, 246, 0.3);
     transform: translateY(-1px);
+}
+
+/* hopRadio Button */
+.hopradio-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 20px;
+    border-radius: 9999px;
+    background: rgba(0, 0, 0, 0.5);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(239, 68, 68, 0.4);
+    color: white;
+    text-decoration: none;
+    font-size: 0.85rem;
+    transition: all 0.2s ease;
+}
+
+.hopradio-btn:hover {
+    background: rgba(0, 0, 0, 0.8);
+    border-color: #ef4444;
+    box-shadow: 0 0 20px rgba(255, 0, 0, 0.3);
+    transform: scale(1.05);
 }
 
 /* Lang Toggle */

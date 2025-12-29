@@ -75,11 +75,27 @@ let GLOBAL_CACHE = {
 
 let CLIENTS = [];
 
-// Start Background Loop
-// Start Background Loop
-const SCRAPE_INTERVAL = 1000 * 60 * 60 * 24; // 24 Hours
-setTimeout(() => runBackgroundScrape(), 5000); // Run 5s after start
-setInterval(runBackgroundScrape, SCRAPE_INTERVAL);
+// --- SCHEDULED SCAN AT 5AM ONLY ---
+function scheduleScanAt5AM() {
+    const now = new Date();
+    const next5AM = new Date(now);
+    next5AM.setHours(5, 0, 0, 0); // Set to 5:00:00 AM today
+
+    // If it's already past 5AM today, schedule for tomorrow
+    if (now >= next5AM) {
+        next5AM.setDate(next5AM.getDate() + 1);
+    }
+
+    const msUntil5AM = next5AM - now;
+    console.log(`[System] Next scan scheduled at 5:00 AM (in ${Math.round(msUntil5AM / 60000)} minutes).`);
+
+    setTimeout(async () => {
+        await runBackgroundScrape();
+        // After scan, schedule next one for 24 hours later
+        setInterval(runBackgroundScrape, 1000 * 60 * 60 * 24);
+    }, msUntil5AM);
+}
+scheduleScanAt5AM();
 
 // Helper: Serve Images (Screenshots)
 app.use('/screenshots', express.static('screenshots'));
