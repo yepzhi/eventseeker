@@ -18,12 +18,14 @@ jobs:
           git config --global user.email "bot@yepzhi.com"
           git config --global user.name "Deployment Bot"
           git clone https://yepzhi:$HF_TOKEN@huggingface.co/spaces/yepzhi/eventseeker space_repo
+          # Clean destination (except .git)
           cd space_repo
-          # Delete everything except .git to handle deletions properly
           find . -maxdepth 1 ! -name '.git' ! -name '.' ! -name '..' -exec rm -rf {} +
           cd ..
-          # Copy new files
-          cp -r * space_repo/
+          
+          # Copy new files using rsync to exclude the destination folder itself
+          rsync -av --exclude='space_repo' --exclude='.git' --exclude='.github' . space_repo/
+          
           cd space_repo
           # Commit
           git add .
