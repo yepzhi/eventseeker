@@ -40,15 +40,36 @@ function loadCache() {
 
 function saveCache() {
     try {
+        cleanupOldEvents(); // Remove past events before saving
         fs.writeFileSync(CACHE_FILE, JSON.stringify({
             events: GLOBAL_CACHE.events,
             timestamp: GLOBAL_CACHE.timestamp,
             nextScan: GLOBAL_CACHE.nextScan
         }, null, 2));
-        console.log(`[System] Saved ${GLOBAL_CACHE.events.length} events to disk.`);
+        console.log(`[System] Saved ${GLOBAL_CACHE.events.length} events to disk (Cleaned old ones).`);
     } catch (e) {
         console.error("Failed to save cache:", e.message);
     }
+}
+
+function cleanupOldEvents() {
+    const now = new Date();
+    now.setHours(0, 0, 0, 0); // Start of today
+
+    const beforeCount = GLOBAL_CACHE.events.length;
+    GLOBAL_CACHE.events = GLOBAL_CACHE.events.filter(evt => {
+        if (!evt.date || evt.date === 'Upcoming') return true;
+        try {
+            const evtDate = new Date(evt.date);
+            if (isNaN(evtDate.getTime())) return true; // Keep if weird format
+            return evtDate >= now; // Keep if today or future
+        } catch (e) {
+            return true;
+        }
+    });
+
+    const removedCount = beforeCount - GLOBAL_CACHE.events.length;
+    if (removedCount > 0) console.log(`[System] Cleaned up ${removedCount} expired events.`);
 }
 
 // Load on startup
@@ -164,10 +185,6 @@ async function analyzeWithGemini(text, venueContext) {
         // Fallback or Initial List
     }
 
-    // We will iterate GLOBAL_CACHE.validModels if available, else standard list
-    const candidates = (GLOBAL_CACHE.validModels && GLOBAL_CACHE.validModels.length > 0)
-        ? GLOBAL_CACHE.validModels
-        : ['gemini-pro', 'gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-1.5-flash-8b'];
 
     // Generate Prompt ONCE
     const promptText = `
@@ -187,16 +204,30 @@ async function analyzeWithGemini(text, venueContext) {
     ${text.substring(0, 15000)}
     `;
 
-    // --- PRIORITIZE STABLE MODELS ---
-    // Experimental models (2.0, 2.5) often have extremely low free-tier quotas.
-    // We prioritize 1.5-flash and pro for production stability.
-    let targetModels = [];
-    if (candidates.includes('gemini-1.5-flash')) targetModels.push('gemini-1.5-flash');
-    if (candidates.includes('gemini-pro')) targetModels.push('gemini-pro');
-    if (candidates.includes('gemini-1.5-pro')) targetModels.push('gemini-1.5-pro');
+    // List of candidates from discovery or defaults
+    const candidates = (GLOBAL_CACHE.validModels && GLOBAL_CACHE.validModels.length > 0)
+        ? GLOBAL_CACHE.validModels
+        : ['gemini-1.5-flash', 'gemini-pro'];
 
-    // Add any discovered models as follow-ups if stables aren't found
-    if (targetModels.length === 0) targetModels = candidates.slice(0, 3);
+    // --- PRIORITIZE FLASH ---
+    // User requested Flash primarily for quota.
+    // We look for 1.5-flash, then any other flash, then pro.
+    let targetModels = [];
+
+    // 1. Try to find the ideal 1.5-flash
+    const ideal = candidates.find(m => m === 'gemini-1.5-flash' || m === 'gemini-flash-latest' || m === 'gemini-1.5-flash-latest');
+    if (ideal) targetModels.push(ideal);
+
+    // 2. Add other flash options if available
+    candidates.forEach(m => {
+        if (m.includes('flash') && !targetModels.includes(m)) targetModels.push(m);
+    });
+
+    // 3. Add pro as safety fallback
+    if (candidates.includes('gemini-pro')) targetModels.push('gemini-pro');
+
+    // Limit to top 3 to keep it fast
+    targetModels = targetModels.slice(0, 3);
 
     console.log(`[AI] Attempting extraction with: ${targetModels.join(', ')}`);
 
@@ -346,8 +377,8 @@ async function runBackgroundScrape() {
                 log(`Failed ${venue.id}: ${err.message}`, 'error', progressPct);
             } finally {
                 if (page) await page.close().catch(() => { });
-                // Rate Limiting: Add a small delay between venues to respect Gemini free tier
-                await new Promise(r => setTimeout(r, 2000));
+                // Rate Limiting: 5s delay to strictly stay under 15 RPM (Gemini Free Tier)
+                await new Promise(r => setTimeout(r, 5000));
             }
         }
 
