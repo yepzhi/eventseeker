@@ -90,7 +90,11 @@ if (!fs.existsSync('screenshots')) fs.mkdirSync('screenshots');
 async function analyzeWithGemini(text, venueContext) {
     if (!text || text.length < 50) return [];
 
-    const API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDDK0_8eokoXOOBF7EvgsiH2jKFoLMc7Wg';
+    const API_KEY = process.env.GEMINI_API_KEY;
+    if (!API_KEY) {
+        console.error("❌ Missing GEMINI_API_KEY in environment variables.");
+        return [];
+    }
     const MODELS = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-pro', 'gemini-1.0-pro'];
 
     const promptText = `
