@@ -198,36 +198,25 @@ async function analyzeWithGemini(text, venueContext) {
     - description: String (Short summary, max 100 chars)
     
     If it's a login page, error, or purely generic info, return {"events": []}.
-    Limit to top 3 events.
+    Extract ALL upcoming events you find on the page.
     
     Text Snippet:
     ${text.substring(0, 15000)}
     `;
 
-    // List of candidates from discovery or defaults
+    // List of candidates 
     const candidates = (GLOBAL_CACHE.validModels && GLOBAL_CACHE.validModels.length > 0)
         ? GLOBAL_CACHE.validModels
-        : ['gemini-1.5-flash', 'gemini-pro'];
+        : ['gemini-1.5-flash', 'gemini-flash-latest', 'gemini-pro'];
 
-    // --- PRIORITIZE FLASH ---
-    // User requested Flash primarily for quota.
-    // We look for 1.5-flash, then any other flash, then pro.
+    // --- FLASH EXCLUSIVE FOR QUOTA ---
+    // User requested Flash primarily for quota (15 RPM vs 2 RPM for Pro/Experimental).
     let targetModels = [];
+    const flashModel = candidates.find(m => m.includes('flash')) || 'gemini-1.5-flash';
+    targetModels.push(flashModel);
 
-    // 1. Try to find the ideal 1.5-flash
-    const ideal = candidates.find(m => m === 'gemini-1.5-flash' || m === 'gemini-flash-latest' || m === 'gemini-1.5-flash-latest');
-    if (ideal) targetModels.push(ideal);
-
-    // 2. Add other flash options if available
-    candidates.forEach(m => {
-        if (m.includes('flash') && !targetModels.includes(m)) targetModels.push(m);
-    });
-
-    // 3. Add pro as safety fallback
+    // Add pro as a single fallback
     if (candidates.includes('gemini-pro')) targetModels.push('gemini-pro');
-
-    // Limit to top 3 to keep it fast
-    targetModels = targetModels.slice(0, 3);
 
     console.log(`[AI] Attempting extraction with: ${targetModels.join(', ')}`);
 
@@ -329,8 +318,27 @@ async function runBackgroundScrape() {
 
                 let navSuccess = false;
                 try {
-                    await page.goto(venue.url, { waitUntil: 'domcontentloaded', timeout: 15000 });
-                    // await page.waitForTimeout(1000); // Slight settle
+                    // Deep Scan: Wait for networkidle + 2s settle
+                    await page.goto(venue.url, { waitUntil: 'networkidle', timeout: 25000 });
+
+                    // Auto-Scroll to trigger lazy loading (crucial for social media/eventbrite)
+                    log(`> Auto-scrolling for lazy content...`, 'info', progressPct);
+                    await page.evaluate(async () => {
+                        await new Promise((resolve) => {
+                            let totalHeight = 0;
+                            let distance = 300;
+                            let timer = setInterval(() => {
+                                let scrollHeight = document.body.scrollHeight;
+                                window.scrollBy(0, distance);
+                                totalHeight += distance;
+                                if (totalHeight >= scrollHeight || totalHeight > 3000) {
+                                    clearInterval(timer);
+                                    resolve();
+                                }
+                            }, 150);
+                        });
+                    });
+                    await new Promise(r => setTimeout(r, 2000)); // Final settle
                     navSuccess = true;
                 } catch (e) {
                     log(`Nav Error ${venue.id}: ${e.message}`, 'warn', progressPct);
@@ -377,8 +385,8 @@ async function runBackgroundScrape() {
                 log(`Failed ${venue.id}: ${err.message}`, 'error', progressPct);
             } finally {
                 if (page) await page.close().catch(() => { });
-                // Rate Limiting: 5s delay to strictly stay under 15 RPM (Gemini Free Tier)
-                await new Promise(r => setTimeout(r, 5000));
+                // Rate Limiting: 10s delay between sites to strictly stay under 15 RPM
+                await new Promise(r => setTimeout(r, 10000));
             }
         }
 
