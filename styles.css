@@ -260,6 +260,43 @@ body::before {
     gap: 20px;
 }
 
+/* --- LOG VISOR --- */
+.log-visor {
+    width: 100%;
+    margin-bottom: 20px;
+    background: rgba(0, 0, 0, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 10px;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 0.8em;
+    color: #4ade80;
+    /* Terminal Green */
+    max-height: 120px;
+    overflow-y: auto;
+    display: none;
+    /* Hidden by default until active */
+    backdrop-filter: blur(10px);
+}
+
+.log-line {
+    margin-bottom: 4px;
+    opacity: 0.8;
+}
+
+.log-line.error {
+    color: #ef4444;
+}
+
+.log-line.warn {
+    color: #eab308;
+}
+
+.log-line.success {
+    color: #60a5fa;
+    font-weight: bold;
+}
+
 /* Event Card */
 .event-card {
     background: rgba(255, 255, 255, 0.03);

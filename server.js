@@ -71,16 +71,27 @@ const VENUES = [
     { id: 'my_events_center_az', city: 'Arizona', category: 'General', url: 'https://tu.myeventscenter.com/browseByState/AZ/1' },
     { id: 'visit_phoenix', city: 'Phoenix', category: 'Turismo', url: 'https://www.visitphoenix.com/events/next-30-days/' },
     { id: 'dtphx', city: 'Phoenix', category: 'General', url: 'https://dtphx.org/events/calendar' },
-    { id: 'tucson_jazz_festival', city: 'Tucson', category: 'Conciertos', url: 'https://tucsonjazzfestival.org/get-jazz-festival-tickets/?gad_source=1&gad_campaignid=23053188849&gbraid=0AAAABBa1xjmymByVZewMv2ZP4JF-maHlj&gclid=Cj0KCQiA6sjKBhCSARIsAJvYcpOgwb-4R1ZVc6XctOu7RwQLZqwbdZ11j1P_zvEY-VT2NUkvyT0CadUaApdJEALw_wcB' },
+    { id: 'tucson_jazz_festival', city: 'Tucson', category: 'Conciertos', url: 'https://tucsonjazzfestival.org/get-jazz-festival-tickets/?gad_source=1&gad_campaignid=23053188849&gbraid=0AAAABBa1xjmymByVZewMv2ZP4JF-maHlj&gclid=Cj0KCQiA6sjKBhCSARIsAJvYcpOgwb-4R1ZVc6XctOu7RwQLZqwbdL11j1P_zvEY-VT2NUkvyT0CadUaApdJEALw_wcB' },
     { id: 'visit_tucson', city: 'Tucson', category: 'Turismo', url: 'https://www.visittucson.org/events/this-weekend/' },
 ];
 
-// Trigger Scrape Endpoint
+// Trigger Scrape Endpoint (SSE Streaming)
 app.get('/scrape', async (req, res) => {
     const { city, category } = req.query;
     console.log(`[Scraper] Starting scrape for City: ${city}, Cat: ${category}`);
 
+    // Set headers for SSE
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const sendLog = (msg, type = 'info') => {
+        res.write(`data: ${JSON.stringify({ type: 'log', message: msg, level: type })}\n\n`);
+    };
+
     try {
+        sendLog(`Initializing Headless Browser...`);
+
         const browser = await chromium.launch({ headless: true });
         const context = await browser.newContext({
             userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
@@ -89,58 +100,68 @@ app.get('/scrape', async (req, res) => {
         const realData = [];
         const page = await context.newPage();
 
-        // 1. Filter sources based on request to save resources
+        // 1. Filter sources
         const targets = VENUES.filter(v => {
             return (city === 'all' || v.city === city) &&
                 (category === 'all' || v.category === category);
         });
 
-        // 2. Scrape each target
-        for (const venue of targets) {
-            try {
-                console.log(`Visiting: ${venue.url}`);
-                await page.goto(venue.url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+        sendLog(`Found ${targets.length} targets matching filters.`);
 
-                // Generic Metadata Extraction (OpenGraph / Title)
-                // This is a "Heuristic" scraper. For specific sites, we'd need specific selectors.
+        // 2. Scrape each target
+        for (const [index, venue] of targets.entries()) {
+            try {
+                // Progress update
+                sendLog(`[${index + 1}/${targets.length}] Scanning ${venue.id}...`);
+
+                // Fast Scan Mock-up behavior for stability in this version 1.0 (Real scraping logic is brittle without sophisticated selectors)
+                // For this request, we will ACTUALLY visit but timeout quickly if heavy
+                try {
+                    await page.goto(venue.url, { waitUntil: 'domcontentloaded', timeout: 8000 });
+                } catch (e) {
+                    sendLog(`Timeout visiting ${venue.url}, skipping...`, 'warn');
+                    continue;
+                }
+
                 const pageTitle = await page.title();
                 const ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content').catch(() => pageTitle) || pageTitle;
                 const ogImage = await page.locator('meta[property="og:image"]').getAttribute('content').catch(() => '').then(res => res || '');
 
-                // For now, we assume the "Latest Post" or the Page itself represents an event opportunity
-                // In a production scraper, we would parse specific post elements.
-
-                realData.push({
-                    id: venue.id + '_' + Date.now(),
-                    title: ogTitle.replace(' | Facebook', '').substring(0, 60), // Clean up title
-                    venue: {
-                        name: venue.id.replace(/_/g, ' ').toUpperCase(),
-                        city: venue.city,
-                        category: venue.category,
-                        url: venue.url
-                    },
-                    date: new Date().toISOString(), // Default to "Now" if no date found
-                    image: ogImage,
-                    link: venue.url
-                });
+                if (ogTitle) {
+                    realData.push({
+                        id: venue.id + '_' + Date.now(),
+                        title: ogTitle.replace(' | Facebook', '').substring(0, 60),
+                        venue: {
+                            name: venue.id.replace(/_/g, ' ').toUpperCase(),
+                            city: venue.city,
+                            category: venue.category,
+                            url: venue.url
+                        },
+                        date: new Date().toISOString(),
+                        image: ogImage,
+                        link: venue.url
+                    });
+                    sendLog(`> Found: ${ogTitle.substring(0, 20)}...`, 'success');
+                }
 
             } catch (err) {
-                console.error(`Failed to scrape ${venue.url}:`, err.message);
-                // Continue to next venue
+                sendLog(`Error scanning ${venue.id}: ${err.message}`, 'error');
             }
         }
 
         await browser.close();
 
-        res.json({
-            success: true,
-            timestamp: new Date().toISOString(),
-            events: realData // Now returns actual info found on the pages
-        });
+        // Final payload
+        res.write(`data: ${JSON.stringify({ type: 'result', events: realData, timestamp: new Date().toISOString() })}\n\n`);
+
+        // Close Stream
+        res.write('event: close\ndata: close\n\n');
+        res.end();
 
     } catch (error) {
         console.error('Global Scrape Error:', error);
-        res.status(500).json({ success: false, error: error.message });
+        sendLog(`CRITICAL ERROR: ${error.message}`, 'error');
+        res.end();
     }
 });
 

@@ -197,45 +197,83 @@ async function filterEvents() {
     let eventsToDisplay = [];
 
     // 1. Try Fetching from Backend
-    try {
-        const response = await fetch(`${API_URL}/scrape?city=${city}&category=${Category}`);
+    // 1. Try Fetching from Backend (STREAMING)
+    const visor = document.getElementById('logVisor');
+    visor.style.display = 'block';
+    visor.innerHTML = '<div class="log-line">> Connecting to EventSeeker Engine...</div>';
 
-        if (response.ok) {
-            const data = await response.json();
-            if (data.events && data.events.length > 0) {
-                eventsToDisplay = data.events;
+    // Clear previous results temporarily or show them as "old"
+    // grid.innerHTML = ... (Already showing loading)
+
+    const evtSource = new EventSource(`${API_URL}/scrape?city=${city}&category=${Category}`);
+
+    evtSource.onmessage = function (event) {
+        // "close" event hack because standard EventSource doesn't always handle server close neatly
+        if (event.data === 'close') {
+            evtSource.close();
+            return;
+        }
+
+        try {
+            const data = JSON.parse(event.data);
+
+            if (data.type === 'log') {
+                // Append Log
+                const line = document.createElement('div');
+                line.className = `log-line ${data.level || ''}`;
+                line.innerText = `> ${data.message}`;
+                visor.appendChild(line);
+                visor.scrollTop = visor.scrollHeight; // Auto-scroll
+            }
+
+            if (data.type === 'result') {
+                // Final Data
+                evtSource.close();
+                eventsToDisplay = data.events || [];
+
                 if (data.timestamp) {
                     lastScrapeTime = new Date(data.timestamp);
                     updateServerStatus();
                 }
-            } else {
-                throw new Error("No events from backend");
+
+                // Render
+                // 2. Filter by Date (Only if we have events, otherwise empty)
+                const filtered = eventsToDisplay.filter(ev => checkDateRange(ev.date, dateRange));
+
+                // 3. Render
+                if (eventsToDisplay.length > 0) {
+                    renderEvents(filtered, grid);
+                } else {
+                    grid.innerHTML = `
+                        <div style="grid-column:1/-1; text-align:center; opacity:0.5; padding:40px;">
+                            No new events found during this scan.
+                        </div>`;
+                }
+
+                // Visor can auto-hide or stay. Let's keep it but make it smaller or just say "Done"
+                const doneLine = document.createElement('div');
+                doneLine.className = 'log-line success';
+                doneLine.innerText = `> Scan Complete. Disconnected.`;
+                visor.appendChild(doneLine);
             }
-        } else {
-            throw new Error("Backend offline");
+
+        } catch (e) {
+            console.error("Parse Error", e);
         }
+    };
 
-    } catch (e) {
-        console.log("Backend unavailable, using Mock Data:", e.message);
-        // Fallback to Mock Data using globally available 'venues'
-        eventsToDisplay = generateMockEvents(venues);
+    evtSource.onerror = function (err) {
+        console.error("EventSource failed:", err);
+        evtSource.close();
 
-        // Filter Mock Data by City/Category manually since mock generator returns ALL usually
-        // or we let simple filter handle it.
-        // Let's refine mock generator usage:
-        console.log("Backend unavailable:", e.message);
-        // NO MOCK FALLBACK as per request
-        // Show Error in Grid
-        grid.innerHTML = `
-            <div style="grid-column:1/-1; text-align:center; padding:40px; opacity:0.7;">
-                <div style="font-size:2em; margin-bottom:10px;">⚠️</div>
-                <div>Connection Failed</div>
-                <div style="font-size:0.8em; opacity:0.6;">Could not reach the scraping server.</div>
-            </div>`;
+        const line = document.createElement('div');
+        line.className = 'log-line error';
+        line.innerText = `> Connection lost. Retrying manually in 60s.`;
+        visor.appendChild(line);
 
-        // Update Status Badge to Error
-        updateServerStatus(true); // true = isError
-    }
+        // Update badge
+        updateServerStatus(true);
+    };
 
     // 2. Filter by Date (Only if we have events, otherwise empty)
     const filtered = eventsToDisplay.filter(ev => checkDateRange(ev.date, dateRange));
