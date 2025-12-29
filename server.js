@@ -109,7 +109,36 @@ async function analyzeWithGemini(text, venueContext) {
         ? GLOBAL_CACHE.validModels
         : ['gemini-pro', 'gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-1.5-flash-8b'];
 
-    for (const model of candidates) {
+    // Generate Prompt ONCE
+    const promptText = `
+    You are an event scout for ${venueContext.city}.
+    Read the following website text from "${venueContext.id}" and extract upcoming events.
+    
+    Return a JSON object with an "events" array.
+    Each event must have:
+    - title: String (Clean title)
+    - date: String (YYYY-MM-DD or "Upcoming")
+    - description: String (Short summary, max 100 chars)
+    
+    If it's a login page, error, or purely generic info, return {"events": []}.
+    Limit to top 3 events.
+    
+    Text Snippet:
+    ${text.substring(0, 15000)}
+    `;
+
+    // Filter for STABLE models (prefer 'pro' or 'flash' without 'exp' or 'preview' if possible)
+    // But since the key seems to have access to EVERYTHING, let's pick the best 3.
+    let targetModels = [];
+    if (candidates.includes('gemini-1.5-flash')) targetModels.push('gemini-1.5-flash');
+    if (candidates.includes('gemini-pro')) targetModels.push('gemini-pro');
+    if (candidates.includes('gemini-1.5-pro')) targetModels.push('gemini-1.5-pro');
+    // If we didn't find standard ones, just take the first 3 from the valid list
+    if (targetModels.length === 0) targetModels = candidates.slice(0, 3);
+
+    console.log(`[AI] Attempting extraction with: ${targetModels.join(', ')}`);
+
+    for (const model of targetModels) {
         const URL = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
         try {
             // console.log(`Attempting model: ${model}...`);
