@@ -85,12 +85,16 @@ app.use('/screenshots', express.static('screenshots'));
 const fs = require('fs');
 if (!fs.existsSync('screenshots')) fs.mkdirSync('screenshots');
 
-// --- AI HELPER ---
+// --- AI HELPER (REST API) ---
+// Using raw fetch like RichmondBot to avoid SDK version issues
 async function analyzeWithGemini(text, venueContext) {
     if (!text || text.length < 50) return [];
 
-    // Prompt: Relaxed to find ANY events, array format.
-    const prompt = `
+    const API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDDK0_8eokoXOOBF7EvgsiH2jKFoLMc7Wg';
+    const MODEL = 'gemini-1.5-flash'; // Standard Flash Model
+    const URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+
+    const promptText = `
     You are an event scout for ${venueContext.city}.
     Read the following website text from "${venueContext.id}" and extract upcoming events.
     
@@ -100,22 +104,42 @@ async function analyzeWithGemini(text, venueContext) {
     - date: String (YYYY-MM-DD or "Upcoming")
     - description: String (Short summary, max 100 chars)
     
-    If it's a login page, error, or purely generic info (e.g. "We host weddings"), return {"events": []}.
-    Limit to top 3 events found.
-
+    If it's a login page, error, or purely generic info, return {"events": []}.
+    Limit to top 3 events.
+    
     Text Snippet:
     ${text.substring(0, 15000)}
     `;
 
     try {
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        // Clean markdown code blocks from response
-        const jsonText = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
+        const response = await fetch(URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{
+                    parts: [{ text: promptText }]
+                }]
+            })
+        });
+
+        if (!response.ok) {
+            const err = await response.text();
+            console.error(`Gemini API Error (${response.status}):`, err);
+            return [];
+        }
+
+        const data = await response.json();
+        // Extract Text
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (!rawText) return [];
+
+        // Clean JSON
+        const jsonText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
         const parsed = JSON.parse(jsonText);
         return parsed.events || [];
+
     } catch (e) {
-        console.error("Gemini Parse Error", e);
+        console.error("Gemini Parse Error:", e.message);
         return [];
     }
 }
