@@ -10,13 +10,49 @@ const PORT = process.env.PORT || 3000;
 // GEMINI CONFIG
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDDK0_8eokoXOOBF7EvgsiH2jKFoLMc7Wg';
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-// Fallback to "gemini-pro" as 1.5-flash is returning 404s
-const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+// Stable default
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
+const SCRAPE_INTERVAL = 1000 * 60 * 60 * 24; // 24 Hours
+const CACHE_FILE = 'events_db.json';
+const fs = require('fs');
 
 app.use(cors());
 app.use(express.json());
 // Serve static frontend files
 app.use(express.static('.'));
+
+// --- PERSISTENCE HELPERS ---
+function loadCache() {
+    try {
+        if (fs.existsSync(CACHE_FILE)) {
+            const data = fs.readFileSync(CACHE_FILE, 'utf8');
+            const json = JSON.parse(data);
+            GLOBAL_CACHE.events = json.events || [];
+            GLOBAL_CACHE.timestamp = json.timestamp;
+            GLOBAL_CACHE.nextScan = json.nextScan;
+            console.log(`[System] Loaded ${GLOBAL_CACHE.events.length} events from disk.`);
+        }
+    } catch (e) {
+        console.error("Failed to load cache:", e.message);
+    }
+}
+
+function saveCache() {
+    try {
+        fs.writeFileSync(CACHE_FILE, JSON.stringify({
+            events: GLOBAL_CACHE.events,
+            timestamp: GLOBAL_CACHE.timestamp,
+            nextScan: GLOBAL_CACHE.nextScan
+        }, null, 2));
+        console.log(`[System] Saved ${GLOBAL_CACHE.events.length} events to disk.`);
+    } catch (e) {
+        console.error("Failed to save cache:", e.message);
+    }
+}
+
+// Load on startup
+loadCache();
 
 // Root endpoint (Now serves frontend, or API info if needed, but static takes precedence for index.html)
 // Removing explicit root handler to let express.static serve index.html
@@ -152,13 +188,15 @@ async function analyzeWithGemini(text, venueContext) {
     ${text.substring(0, 15000)}
     `;
 
-    // Filter for STABLE models (prefer 'pro' or 'flash' without 'exp' or 'preview' if possible)
-    // But since the key seems to have access to EVERYTHING, let's pick the best 3.
+    // --- PRIORITIZE STABLE MODELS ---
+    // Experimental models (2.0, 2.5) often have extremely low free-tier quotas.
+    // We prioritize 1.5-flash and pro for production stability.
     let targetModels = [];
     if (candidates.includes('gemini-1.5-flash')) targetModels.push('gemini-1.5-flash');
     if (candidates.includes('gemini-pro')) targetModels.push('gemini-pro');
     if (candidates.includes('gemini-1.5-pro')) targetModels.push('gemini-1.5-pro');
-    // If we didn't find standard ones, just take the first 3 from the valid list
+
+    // Add any discovered models as follow-ups if stables aren't found
     if (targetModels.length === 0) targetModels = candidates.slice(0, 3);
 
     console.log(`[AI] Attempting extraction with: ${targetModels.join(', ')}`);
@@ -309,53 +347,21 @@ async function runBackgroundScrape() {
                 log(`Failed ${venue.id}: ${err.message}`, 'error', progressPct);
             } finally {
                 if (page) await page.close().catch(() => { });
+                // Rate Limiting: Add a small delay between venues to respect Gemini free tier
+                await new Promise(r => setTimeout(r, 2000));
             }
         }
 
         await browser.close();
 
         // Update Cache
-        // --- PERSISTENCE HELPERS ---
-        const CACHE_FILE = 'events_db.json';
-        function loadCache() {
-            try {
-                if (fs.existsSync(CACHE_FILE)) {
-                    const data = fs.readFileSync(CACHE_FILE, 'utf8');
-                    const json = JSON.parse(data);
-                    GLOBAL_CACHE.events = json.events || [];
-                    GLOBAL_CACHE.timestamp = json.timestamp;
-                    GLOBAL_CACHE.nextScan = json.nextScan;
-                    console.log(`[System] Loaded ${GLOBAL_CACHE.events.length} events from disk.`);
-                }
-            } catch (e) {
-                console.error("Failed to load cache:", e.message);
-            }
-        }
-
-        function saveCache() {
-            try {
-                fs.writeFileSync(CACHE_FILE, JSON.stringify({
-                    events: GLOBAL_CACHE.events,
-                    timestamp: GLOBAL_CACHE.timestamp,
-                    nextScan: GLOBAL_CACHE.nextScan
-                }, null, 2));
-                console.log(`[System] Saved ${GLOBAL_CACHE.events.length} events to disk.`);
-            } catch (e) {
-                console.error("Failed to save cache:", e.message);
-            }
-        }
-
-        // Load on startup
-        loadCache();
-
-        // ... inside runBackgroundScrape ...
         if (newEvents.length > 0) {
             // MERGE LOGIC (Prevent overwriting good data with partial scans)
             let addedCount = 0;
-            const existingIds = new Set(GLOBAL_CACHE.events.map(e => e.title + e.date)); // Simple dedup key
+            const existingIds = new Set(GLOBAL_CACHE.events.map(e => (e.title + e.date).toLowerCase()));
 
             newEvents.forEach(evt => {
-                const key = evt.title + evt.date;
+                const key = (evt.title + evt.date).toLowerCase();
                 if (!existingIds.has(key)) {
                     GLOBAL_CACHE.events.push(evt);
                     addedCount++;
@@ -367,11 +373,12 @@ async function runBackgroundScrape() {
 
             saveCache(); // Persist to disk
 
-            log(`Scan Complete. Found ${newEvents.length} new. Merged Total: ${GLOBAL_CACHE.events.length}.`, 'success', 100);
+            log(`Scan Complete. Found ${newEvents.length} candidates. Added ${addedCount} new uniquely. Merged Total: ${GLOBAL_CACHE.events.length}.`, 'success', 100);
             broadcast({ type: 'result', events: GLOBAL_CACHE.events, timestamp: GLOBAL_CACHE.timestamp, nextScan: GLOBAL_CACHE.nextScan });
         } else {
             log(`Scan finished. No new events found.`, 'warn', 100);
             GLOBAL_CACHE.nextScan = Date.now() + SCRAPE_INTERVAL;
+            saveCache(); // Even if no events, save the nextScan timestamp
             broadcast({ type: 'result', events: GLOBAL_CACHE.events, timestamp: GLOBAL_CACHE.timestamp, nextScan: GLOBAL_CACHE.nextScan });
         }
 
