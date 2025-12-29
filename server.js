@@ -131,12 +131,9 @@ async function analyzeWithGemini(text, venueContext) {
             });
 
             if (!response.ok) {
-                if (response.status === 404 || response.status === 503) {
-                    // Try next model
-                    continue;
-                }
-                // Other error? Log and break or continue?
-                console.error(`Gemini ${model} Error (${response.status})`);
+                const errText = await response.text();
+                console.error(`Gemini ${model} Failed (${response.status}): ${errText.substring(0, 200)}`);
+                // if (response.status === 404 || response.status === 503) continue; // Disable silent skip for debug
                 continue;
             }
 
@@ -214,7 +211,7 @@ async function runBackgroundScrape() {
                     // await page.waitForTimeout(1000); // Slight settle
                     navSuccess = true;
                 } catch (e) {
-                    log(`Timeout: ${venue.id}`, 'warn', progressPct);
+                    log(`Nav Error ${venue.id}: ${e.message}`, 'warn', progressPct);
                     // Even if timeout, we might have content loaded? Try anyway.
                 }
 
