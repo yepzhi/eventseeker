@@ -123,7 +123,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // SIMULATE SERVER STATE (To be replaced by real fetch to HuggingFace)
 // We set it to 23 minutes ago for the demo
-let lastScrapeTime = new Date(Date.now() - 1000 * 60 * 23);
+// Initial State: Null until we get data
+let lastScrapeTime = null;
 
 function updateServerStatus(isError = false) {
     // Global variable for currentLang is in translations.js
@@ -137,7 +138,14 @@ function updateServerStatus(isError = false) {
         // Error State
         el.innerText = translations[currentLang].syncError;
         if (dot) dot.style.backgroundColor = '#ef4444'; // Red
-        if (badge) badge.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+        if (badge) badge.style.borderColor = 'rgba(239, 68, 68, 0.5)';
+        return;
+    }
+
+    // Checking if we have valid data yet
+    if (!lastScrapeTime || isNaN(lastScrapeTime.getTime())) {
+        el.innerText = "Connecting...";
+        if (dot) dot.style.backgroundColor = '#eab308'; // Yellow
         return;
     }
 
