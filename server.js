@@ -76,7 +76,8 @@ let GLOBAL_CACHE = {
 let CLIENTS = [];
 
 // Start Background Loop
-const SCRAPE_INTERVAL = 1000 * 60 * 60; // 1 Hour
+// Start Background Loop
+const SCRAPE_INTERVAL = 1000 * 60 * 60 * 24; // 24 Hours
 setTimeout(() => runBackgroundScrape(), 5000); // Run 5s after start
 setInterval(runBackgroundScrape, SCRAPE_INTERVAL);
 
