@@ -143,7 +143,6 @@ scheduleScanAt5AM_GMT7();
 
 // Helper: Serve Images (Screenshots)
 app.use('/screenshots', express.static('screenshots'));
-const fs = require('fs');
 if (!fs.existsSync('screenshots')) fs.mkdirSync('screenshots');
 
 // --- AI HELPER (REST API) ---
