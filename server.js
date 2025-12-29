@@ -90,12 +90,12 @@ if (!fs.existsSync('screenshots')) fs.mkdirSync('screenshots');
 async function analyzeWithGemini(text, venueContext) {
     if (!text || text.length < 50) return [];
 
-    const API_KEY = process.env.GEMINI_API_KEY;
     if (!API_KEY) {
         console.error("❌ Missing GEMINI_API_KEY in environment variables.");
         return [];
     }
-    const MODELS = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-pro', 'gemini-1.0-pro'];
+    // Reordered: prioritized gemini-pro (stable) over 1.5-flash (beta/404 prone)
+    const MODELS = ['gemini-pro', 'gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-1.5-flash-8b'];
 
     const promptText = `
     You are an event scout for ${venueContext.city}.
