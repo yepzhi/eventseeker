@@ -208,11 +208,7 @@ async function filterEvents() {
     const evtSource = new EventSource(`${API_URL}/scrape?city=${city}&category=${Category}`);
 
     evtSource.onmessage = function (event) {
-        if (event.data === 'close') {
-            evtSource.close();
-            return;
-        }
-
+        // Keep stream open for live updates
         try {
             const data = JSON.parse(event.data);
 
