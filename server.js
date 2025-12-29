@@ -326,4 +326,5 @@ app.get('/scrape', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`EventSeeker AI running on http://localhost:${PORT}`);
+    console.log(`[System] Version 2.1 - Loaded with API Key Fix`);
 });
