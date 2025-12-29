@@ -354,4 +354,4 @@ function renderEvents(events, container) {
         container.appendChild(card);
     });
 }
-}
+
