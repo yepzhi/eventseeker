@@ -16,7 +16,7 @@ const translations = {
         btn30Days: "Next 30 Days",
         loadingScan: "Scanning venues...",
         loadingConnect: "Connecting to sources...",
-        footerDev: "EventSeeker v0.1 • Developed by @yepzhi",
+        footerDev: "EventSeeker v1.0 • Developed by @yepzhi",
         updatedAgo: "Updated {min} minutes ago",
         syncError: "Sync Error"
     },
@@ -37,7 +37,7 @@ const translations = {
         btn30Days: "Este Mes",
         loadingScan: "Escaneando lugares...",
         loadingConnect: "Conectando con fuentes...",
-        footerDev: "EventSeeker v0.1 • Desarrollado por @yepzhi",
+        footerDev: "EventSeeker v1.0 • Desarrollado por @yepzhi",
         updatedAgo: "Actualizado hace {min} minutos",
         syncError: "Error de Sincronización"
     }
