@@ -76,64 +76,91 @@ const VENUES = [
 ];
 
 // Trigger Scrape Endpoint (SSE Streaming)
-app.get('/scrape', async (req, res) => {
-    const { city, category } = req.query;
-    console.log(`[Scraper] Starting scrape for City: ${city}, Cat: ${category}`);
+// --- CACHE & STORAGE ---
+let GLOBAL_CACHE = {
+    events: [],
+    logs: [],
+    timestamp: null,
+    isScanning: false
+};
 
-    // Set headers for SSE
-    res.setHeader('Content-Type', 'text/event-stream');
-    res.setHeader('Cache-Control', 'no-cache');
-    res.setHeader('Connection', 'keep-alive');
+// Start Background Loop
+const SCRAPE_INTERVAL = 1000 * 60 * 60; // 1 Hour
+setTimeout(() => runBackgroundScrape(), 5000); // Run 5s after start
+setInterval(runBackgroundScrape, SCRAPE_INTERVAL);
 
-    const sendLog = (msg, type = 'info') => {
-        res.write(`data: ${JSON.stringify({ type: 'log', message: msg, level: type })}\n\n`);
+// Helper: Serve Images (Screenshots)
+app.use('/screenshots', express.static('screenshots'));
+const fs = require('fs');
+if (!fs.existsSync('screenshots')) fs.mkdirSync('screenshots');
+
+// --- BACKGROUND SCRAPER ---
+async function runBackgroundScrape() {
+    if (GLOBAL_CACHE.isScanning) return;
+    GLOBAL_CACHE.isScanning = true;
+    GLOBAL_CACHE.logs = []; // Clear logs for new run
+
+    const log = (msg, type = 'info') => {
+        console.log(`[Scraper] ${msg}`);
+        GLOBAL_CACHE.logs.push({ message: msg, level: type, time: Date.now() });
     };
 
-    try {
-        sendLog(`Initializing Headless Browser...`);
+    log('Starting scheduled auto-scrape...');
 
+    try {
         const browser = await chromium.launch({
             headless: true,
             args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
         });
+
         const context = await browser.newContext({
-            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            viewport: { width: 1280, height: 720 }
+            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            viewport: { width: 1280, height: 800 }
         });
 
-        const realData = [];
         const page = await context.newPage();
 
-        // 1. Filter sources
-        const targets = VENUES.filter(v => {
-            return (city === 'all' || v.city === city) &&
-                (category === 'all' || v.category === category);
+        // Block heavy resources
+        await page.route('**/*', (route) => {
+            const type = route.request().resourceType();
+            if (['font', 'stylesheet', 'media'].includes(type)) route.abort();
+            else route.continue();
         });
 
-        sendLog(`Found ${targets.length} targets matching filters.`);
+        const newEvents = [];
 
-        // 2. Scrape each target
-        for (const [index, venue] of targets.entries()) {
+        for (const [index, venue] of VENUES.entries()) {
             try {
-                // Progress update
-                sendLog(`[${index + 1}/${targets.length}] Scanning ${venue.id}...`);
+                log(`[${index + 1}/${VENUES.length}] Visiting ${venue.id}...`);
 
-                // Increased timeout to 25s for slower sites / HF network
                 try {
-                    await page.goto(venue.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+                    await page.goto(venue.url, { waitUntil: 'domcontentloaded', timeout: 20000 });
+                    await page.waitForTimeout(1000); // Slight settle
                 } catch (e) {
-                    sendLog(`Timeout visiting ${venue.url}, skipping...`, 'warn');
-                    continue;
+                    log(`Timeout/Error visiting ${venue.url}`, 'warn');
+                    // Even if timeout, we might have content loaded? Try anyway.
                 }
 
-                const pageTitle = await page.title();
-                const ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content').catch(() => pageTitle) || pageTitle;
-                const ogImage = await page.locator('meta[property="og:image"]').getAttribute('content').catch(() => '').then(res => res || '');
+                // Metadata Extraction
+                let title = await page.title();
+                let ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content').catch(() => title);
+                let ogImage = await page.locator('meta[property="og:image"]').getAttribute('content').catch(() => '');
+
+                // SCREENSHOT FALLBACK (The "Image Scanning" solution)
+                // If no good image found, or just as a robust detail, capture the visible area
+                let screenshotUrl = ogImage;
+                if (!ogImage || ogImage.length < 10) {
+                    const filename = `${venue.id}_${Date.now()}.jpg`;
+                    const path = `screenshots/${filename}`;
+                    await page.screenshot({ path: path, quality: 60, type: 'jpeg' });
+                    screenshotUrl = `/screenshots/${filename}`; // Relative URL served by express
+                    log(`> Captured screenshot for ${venue.id}`, 'info');
+                }
 
                 if (ogTitle) {
-                    realData.push({
+                    newEvents.push({
                         id: venue.id + '_' + Date.now(),
-                        title: ogTitle.replace(' | Facebook', '').substring(0, 60),
+                        title: (ogTitle || title).replace(' | Facebook', '').replace(/[\n\r]/g, ' ').substring(0, 80),
                         venue: {
                             name: venue.id.replace(/_/g, ' ').toUpperCase(),
                             city: venue.city,
@@ -141,31 +168,64 @@ app.get('/scrape', async (req, res) => {
                             url: venue.url
                         },
                         date: new Date().toISOString(),
-                        image: ogImage,
+                        image: screenshotUrl,
                         link: venue.url
                     });
-                    sendLog(`> Found: ${ogTitle.substring(0, 20)}...`, 'success');
+                    log(`> Found info: ${ogTitle.substring(0, 15)}...`, 'success');
                 }
 
             } catch (err) {
-                sendLog(`Error scanning ${venue.id}: ${err.message}`, 'error');
+                log(`Failed ${venue.id}: ${err.message}`, 'error');
             }
         }
 
         await browser.close();
 
-        // Final payload
-        res.write(`data: ${JSON.stringify({ type: 'result', events: realData, timestamp: new Date().toISOString() })}\n\n`);
+        // Update Cache
+        if (newEvents.length > 0) {
+            GLOBAL_CACHE.events = newEvents;
+            GLOBAL_CACHE.timestamp = new Date().toISOString();
+            log(`Scrape Complete. ${newEvents.length} events cached.`, 'success');
+        } else {
+            log(`Scrape finished but no events found. Keeping old cache.`, 'warn');
+        }
 
-        // Close Stream
-        res.write('event: close\ndata: close\n\n');
-        res.end();
-
-    } catch (error) {
-        console.error('Global Scrape Error:', error);
-        sendLog(`CRITICAL ERROR: ${error.message}`, 'error');
-        res.end();
+    } catch (e) {
+        log(`CRITICAL SCRAPER ERROR: ${e.message}`, 'error');
+    } finally {
+        GLOBAL_CACHE.isScanning = false;
     }
+}
+
+// Client Endpoint: Returns CACHED data instantly (streaming logs if active)
+app.get('/scrape', (req, res) => {
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+
+    const { city, category } = req.query;
+
+    res.write(`data: ${JSON.stringify({ type: 'log', message: 'Connected to EventSeeker Cache.', level: 'info' })}\n\n`);
+
+    if (GLOBAL_CACHE.isScanning) {
+        res.write(`data: ${JSON.stringify({ type: 'log', message: 'System is currently scraping updates...', level: 'warn' })}\n\n`);
+    } else if (GLOBAL_CACHE.timestamp) {
+        const agos = Math.floor((Date.now() - new Date(GLOBAL_CACHE.timestamp)) / 60000);
+        res.write(`data: ${JSON.stringify({ type: 'log', message: `Serving results from ${agos} mins ago.`, level: 'success' })}\n\n`);
+    } else {
+        res.write(`data: ${JSON.stringify({ type: 'log', message: 'First scrape pending... Please wait.', level: 'warn' })}\n\n`);
+    }
+
+    // Filter Cache
+    let filtered = GLOBAL_CACHE.events || [];
+    if (city && city !== 'all') filtered = filtered.filter(e => e.venue.city === city);
+    if (category && category !== 'all') filtered = filtered.filter(e => e.venue.category === category);
+
+    // Send Result
+    res.write(`data: ${JSON.stringify({ type: 'result', events: filtered, timestamp: GLOBAL_CACHE.timestamp })}\n\n`);
+
+    res.write('event: close\ndata: close\n\n');
+    res.end();
 });
 
 app.listen(PORT, () => {
