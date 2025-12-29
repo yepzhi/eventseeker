@@ -86,30 +86,36 @@ if (!fs.existsSync('screenshots')) fs.mkdirSync('screenshots');
 
 // --- AI HELPER ---
 async function analyzeWithGemini(text, venueContext) {
-    if (!text || text.length < 50) return null;
+    if (!text || text.length < 50) return [];
 
+    // Prompt: Relaxed to find ANY events, array format.
     const prompt = `
-    Analyze this text from a webpage about events in ${venueContext.city} (${venueContext.id}).
-    Extract the single most important UPCOMING event mentioned.
-    If the text is just a login page, error message, or generic site description with no specific events, return NULL.
+    You are an event scout for ${venueContext.city}.
+    Read the following website text from "${venueContext.id}" and extract upcoming events.
     
-    Return JSON ONLY:
-    {
-      "title": "Event Name",
-      "date": "YYYY-MM-DD",
-      "isValid": boolean
-    }
+    Return a JSON object with an "events" array.
+    Each event must have:
+    - title: String (Clean title)
+    - date: String (YYYY-MM-DD or "Upcoming")
+    - description: String (Short summary, max 100 chars)
     
-    Text: ${text.substring(0, 5000)}
+    If it's a login page, error, or purely generic info (e.g. "We host weddings"), return {"events": []}.
+    Limit to top 3 events found.
+
+    Text Snippet:
+    ${text.substring(0, 15000)}
     `;
 
     try {
         const result = await model.generateContent(prompt);
         const response = await result.response;
+        // Clean markdown code blocks from response
         const jsonText = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
-        return JSON.parse(jsonText);
+        const parsed = JSON.parse(jsonText);
+        return parsed.events || [];
     } catch (e) {
-        return null;
+        console.error("Gemini Parse Error", e);
+        return [];
     }
 }
 
@@ -174,34 +180,38 @@ async function runBackgroundScrape() {
                 }
 
                 if (navSuccess) {
-                    // 1. Get Text for AI
-                    const bodyText = await page.innerText('body');
+                    // 1. Get Text for AI (Better extraction strategy)
+                    // We prioritize H1, H2, Article tags, then fallback to body
+                    const bodyText = await page.evaluate(() => {
+                        const important = Array.from(document.querySelectorAll('h1, h2, h3, article, .event-card, .post')).map(e => e.innerText).join('\n');
+                        return important.length > 200 ? important : document.body.innerText;
+                    });
 
                     // 2. Call Gemini
-                    log(`> Analyzing text with Gemini AI...`, 'info', progressPct);
-                    const aiResult = await analyzeWithGemini(bodyText, venue);
+                    log(`> Analyzing...`, 'info', progressPct);
+                    const aiEvents = await analyzeWithGemini(bodyText, venue);
 
-                    // 3. Fallback to Screenshot if AI finds nothing but page loaded? 
-                    // No, for now we trust AI. If AI says garbage, it's garbage.
-
-                    if (aiResult && aiResult.isValid && aiResult.title) {
-                        newEvents.push({
-                            id: venue.id + '_' + Date.now(),
-                            title: aiResult.title,
-                            venue: {
-                                name: venue.id.replace(/_/g, ' ').toUpperCase(),
-                                city: venue.city,
-                                category: venue.category,
-                                url: venue.url
-                            },
-                            date: aiResult.date || new Date().toISOString(),
-                            image: '', // No images in list view anyway
-                            link: venue.url,
-                            aiVerified: true
+                    if (aiEvents && aiEvents.length > 0) {
+                        aiEvents.forEach(evt => {
+                            newEvents.push({
+                                id: venue.id + '_' + Date.now() + Math.random(),
+                                title: evt.title,
+                                venue: {
+                                    name: venue.id.replace(/_/g, ' ').toUpperCase(),
+                                    city: venue.city,
+                                    category: venue.category,
+                                    url: venue.url
+                                },
+                                date: evt.date === 'Upcoming' ? new Date().toISOString() : evt.date,
+                                image: '',
+                                link: venue.url,
+                                aiVerified: true,
+                                description: evt.description
+                            });
                         });
-                        log(`> AI Found: ${aiResult.title}`, 'success', progressPct);
+                        log(`> AI Found: ${aiEvents.length} events!`, 'success', progressPct);
                     } else {
-                        log(`> AI: No valid events found.`, 'warn', progressPct);
+                        log(`> No specific events extracted.`, 'warn', progressPct);
                     }
                 }
 

@@ -221,13 +221,13 @@ async function filterEvents() {
                 visor.scrollTop = visor.scrollHeight;
 
                 // BADGE UPDATE (Progress)
-                if (data.progress !== undefined) {
+                if (data.progress !== undefined && data.progress !== null) {
                     const el = document.getElementById('updateText');
                     const dot = document.querySelector('.pulse-dot');
-                    if (el) el.innerText = `Working (${data.progress}%)`;
+                    if (el) el.innerText = `AI Scan: ${data.progress}%`;
                     if (dot) dot.style.backgroundColor = '#eab308'; // Yellow
-                } else if (data.message.includes('Connecting')) {
-                    updateServerStatus(); // Reset to "Connecting" or time
+                } else if (data.message.includes('Connected')) {
+                    // handled by init
                 }
             }
 
