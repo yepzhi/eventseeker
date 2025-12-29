@@ -153,6 +153,19 @@ function updateServerStatus(isError = false) {
     if (dot) dot.style.backgroundColor = '#22c55e'; // Green
     if (badge) badge.style.borderColor = 'rgba(255, 255, 255, 0.05)';
 
+    // Countdown Logic
+    if (window.nextScanTime) {
+        const now = new Date();
+        const diffMs = window.nextScanTime - now;
+
+        if (diffMs > 0) {
+            const hours = Math.floor(diffMs / (1000 * 60 * 60));
+            const mins = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+            if (el) el.innerText = `Next Scan: ${hours}h ${mins}m`;
+            return;
+        }
+    }
+
     const now = new Date();
     const diffMs = now - lastScrapeTime;
     const diffMins = Math.floor(diffMs / 60000);
@@ -241,6 +254,7 @@ async function filterEvents() {
 
                 if (data.timestamp) {
                     lastScrapeTime = new Date(data.timestamp);
+                    if (data.nextScan) window.nextScanTime = data.nextScan;
                     // Only update text to "Time ago" if NOT currently scanning
                     // We let the 'log' messages drive the "Working%" status
                     if (!data.events || data.events.length > 0) updateServerStatus();

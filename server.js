@@ -294,11 +294,13 @@ async function runBackgroundScrape() {
         if (newEvents.length > 0) {
             GLOBAL_CACHE.events = newEvents;
             GLOBAL_CACHE.timestamp = new Date().toISOString();
+            GLOBAL_CACHE.nextScan = Date.now() + SCRAPE_INTERVAL; // Next run logic
             log(`Scan Complete. ${newEvents.length} events found.`, 'success', 100);
-            broadcast({ type: 'result', events: newEvents, timestamp: GLOBAL_CACHE.timestamp });
+            broadcast({ type: 'result', events: newEvents, timestamp: GLOBAL_CACHE.timestamp, nextScan: GLOBAL_CACHE.nextScan });
         } else {
             log(`Scan finished. No events found.`, 'warn', 100);
-            broadcast({ type: 'result', events: GLOBAL_CACHE.events, timestamp: GLOBAL_CACHE.timestamp });
+            GLOBAL_CACHE.nextScan = Date.now() + SCRAPE_INTERVAL;
+            broadcast({ type: 'result', events: GLOBAL_CACHE.events, timestamp: GLOBAL_CACHE.timestamp, nextScan: GLOBAL_CACHE.nextScan });
         }
 
     } catch (e) {
