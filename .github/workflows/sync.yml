@@ -1,0 +1,31 @@
+name: Sync to Hugging Face
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  sync-to-hub:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      - name: Push to Hub
+        env:
+          HF_TOKEN: ${{ secrets.HF_TOKEN }}
+        run: |
+          git config --global user.email "bot@yepzhi.com"
+          git config --global user.name "Deployment Bot"
+          git clone https://yepzhi:$HF_TOKEN@huggingface.co/spaces/yepzhi/eventseeker space_repo
+          cd space_repo
+          # Delete everything except .git to handle deletions properly
+          find . -maxdepth 1 ! -name '.git' ! -name '.' ! -name '..' -exec rm -rf {} +
+          cd ..
+          # Copy new files
+          cp -r * space_repo/
+          cd space_repo
+          # Commit
+          git add .
+          git commit -m "Sync from GitHub" || echo "No changes"
+          git push origin main
