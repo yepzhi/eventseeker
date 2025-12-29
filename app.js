@@ -346,7 +346,7 @@ function renderEvents(events, container) {
                 <div class="event-meta">
                     <span class="tag">${ev.category || 'Event'}</span>
                     <a href="${ev.link || '#'}" target="_blank" class="source-link">
-                        Source ↗
+                        More Info ↗
                     </a>
                 </div>
             </div>
