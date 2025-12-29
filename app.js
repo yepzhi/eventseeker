@@ -229,6 +229,15 @@ async function filterEvents() {
                     // Only update text to "Time ago" if NOT currently scanning
                     // We let the 'log' messages drive the "Working%" status
                     if (!data.events || data.events.length > 0) updateServerStatus();
+
+                    // Restore System Status to Live
+                    const statusEl = document.getElementById('systemStatus');
+                    if (statusEl) {
+                        statusEl.innerHTML = `
+                            <span class="status-dot live"></span>
+                            <span class="status-text">Live</span>
+                        `;
+                    }
                 }
 
                 // Render Logic
@@ -264,21 +273,22 @@ async function filterEvents() {
         console.error("EventSource failed:", err);
         evtSource.close();
 
-        const line = document.createElement('div');
-        line.className = 'log-line error';
-        line.innerText = `> Connection lost. Retrying manually in 60s.`;
-        visor.appendChild(line);
+        // Update System Status to Error
+        const statusEl = document.getElementById('systemStatus');
+        if (statusEl) {
+            statusEl.innerHTML = `
+                <span class="status-dot error"></span>
+                <span class="status-text">Error</span>
+            `;
+        }
 
-        // Silent Retry - Don't panic the user
+        // Silent Retry after 60s
         console.log("EventSource disconnected. Retrying...");
-        // updateServerStatus(true); // Disable visual error
-        // Let it reconnect automatically (browser standard behavior) or we can set a timeout
         setTimeout(() => {
             if (evtSource.readyState === EventSource.CLOSED) {
-                // Re-init if needed, but usually EventSource auto-retries.
-                // We just leave the UI as is.
+                filterEvents(); // Re-try connection
             }
-        }, 5000);
+        }, 60000);
     };
 
     // 2. Filter by Date (Only if we have events, otherwise empty)
