@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>EventSeeker | Curated Events</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Font -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+
+
+    <div class="glass-container">
+        <!-- Lang Toggle -->
+        <div style="position: absolute; top: 20px; right: 20px;">
+            <a href="#" class="nav-lang-btn" id="langToggle">
+                <span class="lang-flag">🇲🇽</span><span class="lang-text">ES</span>
+            </a>
+        </div>
+
+        <div class="header">
+            <h1>EventSeeker✨</h1>
+            <p id="subtitle">Automatic scraping of top events in Sonora, AZ & BC.</p>
+            <div class="update-info">
+                <span class="pulse-dot"></span>
+                <span id="updateText">Updated every hour</span>
+            </div>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-wrapper">
+            <!-- Row 1: Filters -->
+            <div class="controls-row">
+                <div class="control-group">
+                    <span class="control-label" id="lblWhere">Where?</span>
+                    <select id="citySelect" class="input-select">
+                        <option value="all">Everywhere (All Cities)</option>
+                        <option value="Hermosillo" selected>Hermosillo, SON</option>
+                        <option value="Obregon">Ciudad Obregón, SON</option>
+                        <option value="Navojoa">Navojoa, SON</option>
+                        <option value="Nogales">Nogales, SON</option>
+                        <option value="Tucson">Tucson, AZ</option>
+                        <option value="Phoenix">Phoenix, AZ</option>
+                        <option value="Tijuana">Tijuana, BC</option>
+                        <option value="Mexicali">Mexicali, BC</option>
+                        <option value="Ensenada">Ensenada, BC</option>
+                    </select>
+                </div>
+
+                <div class="control-group">
+                    <span class="control-label" id="lblWhat">What?</span>
+                    <select id="catSelect" class="input-select">
+                        <option value="all">Everything (All Types)</option>
+                        <option value="Conciertos">Concerts</option>
+                        <option value="Fiestas">Nightlife</option>
+                        <option value="Cultura">Culture</option>
+                        <option value="Deportes">Sports</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Row 2: Date Segmented Control -->
+            <div class="control-group">
+                <span class="control-label" id="lblWhen">When?</span>
+                <div class="segmented-control">
+                    <button class="segment-btn active" data-range="today">Today</button>
+                    <button class="segment-btn" data-range="3days">Next 3 Days</button>
+                    <button class="segment-btn" data-range="7days">Next 7 Days</button>
+                    <button class="segment-btn" data-range="30days">Next 30 Days</button>
+                </div>
+            </div>
+
+
+        </div>
+
+        <!-- Timeline / Results -->
+        <div id="resultsGrid" class="events-grid">
+            <!-- Cards will be injected here by JS -->
+            <!-- Loading State Placeholder -->
+            <div style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.3); padding: 40px;">
+                Ready to seek. Select filters above.
+            </div>
+        </div>
+
+    </div>
+
+    <div class="footer">
+        <a href="https://yepzhi.com" target="_blank" class="footer-btn">
+            EventSeeker v0.1 • Developed by @yepzhi
+        </a>
+    </div>
+
+    <script src="translations.js"></script>
+    <script src="app.js"></script>
+</body>
+
+</html>

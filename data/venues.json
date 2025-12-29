@@ -1,0 +1,82 @@
+[
+    {
+        "id": "parque_la_ruina",
+        "name": "Parque La Ruina",
+        "city": "Hermosillo",
+        "state": "Sonora",
+        "category": "General",
+        "url": "https://www.facebook.com/ParqueLaRuinaHMO"
+    },
+    {
+        "id": "auditorio_civico",
+        "name": "Auditorio Cívico del Estado",
+        "city": "Hermosillo",
+        "state": "Sonora",
+        "category": "Conciertos",
+        "url": "https://www.facebook.com/AuditorioCivicoSonora"
+    },
+    {
+        "id": "london_pub",
+        "name": "London Pub",
+        "city": "Hermosillo",
+        "state": "Sonora",
+        "category": "Fiestas",
+        "url": "https://www.facebook.com/LondonPubHmo"
+    },
+    {
+        "id": "light_club",
+        "name": "Light",
+        "city": "Hermosillo",
+        "state": "Sonora",
+        "category": "Fiestas",
+        "url": "https://www.facebook.com/LightClubHmo"
+    },
+    {
+        "id": "el_foro",
+        "name": "El Foro",
+        "city": "Tijuana",
+        "state": "Baja California",
+        "category": "Conciertos",
+        "url": "https://www.facebook.com/ElForoTijuana"
+    },
+    {
+        "id": "black_box",
+        "name": "Black Box",
+        "city": "Tijuana",
+        "state": "Baja California",
+        "category": "Conciertos",
+        "url": "https://www.facebook.com/BlackBoxTijuana"
+    },
+    {
+        "id": "rialto_theatre",
+        "name": "Rialto Theatre",
+        "city": "Tucson",
+        "state": "Arizona",
+        "category": "Conciertos",
+        "url": "https://www.facebook.com/RialtoTheatreTucson"
+    },
+    {
+        "id": "hotel_congress",
+        "name": "Hotel Congress",
+        "city": "Tucson",
+        "state": "Arizona",
+        "category": "Cultura",
+        "url": "https://www.facebook.com/hotelcongress"
+    },
+    {
+        "id": "van_buren",
+        "name": "The Van Buren",
+        "city": "Phoenix",
+        "state": "Arizona",
+        "category": "Conciertos",
+        "url": "https://www.facebook.com/TheVanBurenPHX"
+    },
+    {
+        "id": "chase_field",
+        "name": "Chase Field",
+        "city": "Phoenix",
+        "state": "Arizona",
+        "category": "Deportes",
+        "url": "https://www.facebook.com/ChaseField"
+    }
+]

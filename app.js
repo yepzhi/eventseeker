@@ -1,0 +1,311 @@
+// EventSeeker Frontend Logic
+// Simulates the "Headless Browser" results for the demo
+
+// INLINED DATA TO AVOID FILE:// CORS ISSUES
+const INLINED_VENUES = [
+    {
+        "id": "parque_la_ruina",
+        "name": "Parque La Ruina",
+        "city": "Hermosillo",
+        "state": "Sonora",
+        "category": "General",
+        "url": "https://www.facebook.com/ParqueLaRuinaHMO"
+    },
+    {
+        "id": "auditorio_civico",
+        "name": "Auditorio Cívico del Estado",
+        "city": "Hermosillo",
+        "state": "Sonora",
+        "category": "Conciertos",
+        "url": "https://www.facebook.com/AuditorioCivicoSonora"
+    },
+    {
+        "id": "london_pub",
+        "name": "London Pub",
+        "city": "Hermosillo",
+        "state": "Sonora",
+        "category": "Fiestas",
+        "url": "https://www.facebook.com/LondonPubHmo"
+    },
+    {
+        "id": "light_club",
+        "name": "Light",
+        "city": "Hermosillo",
+        "state": "Sonora",
+        "category": "Fiestas",
+        "url": "https://www.facebook.com/LightClubHmo"
+    },
+    {
+        "id": "el_foro",
+        "name": "El Foro",
+        "city": "Tijuana",
+        "state": "Baja California",
+        "category": "Conciertos",
+        "url": "https://www.facebook.com/ElForoTijuana"
+    },
+    {
+        "id": "black_box",
+        "name": "Black Box",
+        "city": "Tijuana",
+        "state": "Baja California",
+        "category": "Conciertos",
+        "url": "https://www.facebook.com/BlackBoxTijuana"
+    },
+    {
+        "id": "rialto_theatre",
+        "name": "Rialto Theatre",
+        "city": "Tucson",
+        "state": "Arizona",
+        "category": "Conciertos",
+        "url": "https://www.facebook.com/RialtoTheatreTucson"
+    },
+    {
+        "id": "hotel_congress",
+        "name": "Hotel Congress",
+        "city": "Tucson",
+        "state": "Arizona",
+        "category": "Cultura",
+        "url": "https://www.facebook.com/hotelcongress"
+    },
+    {
+        "id": "van_buren",
+        "name": "The Van Buren",
+        "city": "Phoenix",
+        "state": "Arizona",
+        "category": "Conciertos",
+        "url": "https://www.facebook.com/TheVanBurenPHX"
+    },
+    {
+        "id": "chase_field",
+        "name": "Chase Field",
+        "city": "Phoenix",
+        "state": "Arizona",
+        "category": "Deportes",
+        "url": "https://www.facebook.com/ChaseField"
+    }
+];
+
+let venues = INLINED_VENUES;
+let allEvents = [];
+let currentDateRange = 'today';
+
+document.addEventListener('DOMContentLoaded', async () => {
+    // 1. Data Already Loaded (Inlined)
+    console.log(`Loaded ${venues.length} venues.`);
+
+    // 2. Setup Listeners
+    // Auto-update on filter change
+    document.getElementById('citySelect').addEventListener('change', filterEvents);
+    document.getElementById('catSelect').addEventListener('change', filterEvents);
+
+    // Date Buttons Logic
+    document.querySelectorAll('.segment-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            // Remove active from all
+            document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+            // Add to clicked
+            e.target.classList.add('active');
+            // Update state
+            currentDateRange = e.target.getAttribute('data-range');
+            // Re-run filter using new logic
+            filterEvents();
+        });
+    });
+
+    // Auto-run for demo effect
+    filterEvents();
+
+    // Init Status Text (Simulated Server Time)
+    updateServerStatus();
+    // Update every minute (UI only)
+    setInterval(updateServerStatus, 60000);
+});
+
+// SIMULATE SERVER STATE (To be replaced by real fetch to HuggingFace)
+// We set it to 23 minutes ago for the demo
+let lastScrapeTime = new Date(Date.now() - 1000 * 60 * 23);
+
+function updateServerStatus(isError = false) {
+    // Global variable for currentLang is in translations.js
+    if (typeof translations === 'undefined') return;
+
+    const el = document.getElementById('updateText');
+    const dot = document.querySelector('.pulse-dot');
+    const badge = document.querySelector('.update-info');
+
+    if (isError) {
+        // Error State
+        el.innerText = translations[currentLang].syncError;
+        if (dot) dot.style.backgroundColor = '#ef4444'; // Red
+        if (badge) badge.style.borderColor = 'rgba(239, 68, 68, 0.3)';
+        return;
+    }
+
+    // Success State
+    if (dot) dot.style.backgroundColor = '#22c55e'; // Green
+    if (badge) badge.style.borderColor = 'rgba(255, 255, 255, 0.05)';
+
+    const now = new Date();
+    const diffMs = now - lastScrapeTime;
+    const diffMins = Math.floor(diffMs / 60000);
+
+    let text = translations[currentLang].updatedAgo;
+    text = text.replace('{min}', diffMins);
+
+    if (el) el.innerText = text;
+}
+// Export for translations.js to call if language changes
+window.updateServerStatus = updateServerStatus;
+
+function runMockScrape() {
+    const grid = document.getElementById('resultsGrid');
+
+    grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; padding:40px;">Scanning venues... <br><span style="font-size:0.8em; opacity:0.6;">Connecting to sources...</span></div>';
+
+    // SIMULATE DELAY
+    setTimeout(() => {
+        allEvents = generateMockEvents(venues);
+        applyFilters();
+    }, 800);
+}
+
+// --- FILTER & API LOGIC ---
+
+const API_URL = 'http://localhost:3000'; // Dev URL, later specific to HuggingFace
+
+async function filterEvents() {
+    const citySelect = document.getElementById('citySelect');
+    const catSelect = document.getElementById('catSelect');
+
+    const city = citySelect.value;
+    const Category = catSelect.value;
+    // Current Date Range is tracked by global variable or we can read DOM
+    // Global 'currentDateRange' is updated by button clicks
+
+    const grid = document.getElementById('resultsGrid');
+    // Show Loading
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5);">Scanning sources...</div>';
+
+    let eventsToDisplay = [];
+
+    // 1. Try Fetching from Backend
+    try {
+        const response = await fetch(`${API_URL}/scrape?city=${city}&category=${Category}`);
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.events && data.events.length > 0) {
+                eventsToDisplay = data.events;
+                if (data.timestamp) {
+                    lastScrapeTime = new Date(data.timestamp);
+                    updateServerStatus();
+                }
+            } else {
+                throw new Error("No events from backend");
+            }
+        } else {
+            throw new Error("Backend offline");
+        }
+
+    } catch (e) {
+        console.log("Backend unavailable, using Mock Data:", e.message);
+        // Fallback to Mock Data using globally available 'venues'
+        eventsToDisplay = generateMockEvents(venues);
+
+        // Filter Mock Data by City/Category manually since mock generator returns ALL usually
+        // or we let simple filter handle it.
+        // Let's refine mock generator usage:
+        console.log("Backend unavailable:", e.message);
+        // NO MOCK FALLBACK as per request
+        // Show Error in Grid
+        grid.innerHTML = `
+            <div style="grid-column:1/-1; text-align:center; padding:40px; opacity:0.7;">
+                <div style="font-size:2em; margin-bottom:10px;">⚠️</div>
+                <div>Connection Failed</div>
+                <div style="font-size:0.8em; opacity:0.6;">Could not reach the scraping server.</div>
+            </div>`;
+
+        // Update Status Badge to Error
+        updateServerStatus(true); // true = isError
+    }
+
+    // 2. Filter by Date (Only if we have events, otherwise empty)
+    const filtered = eventsToDisplay.filter(ev => checkDateRange(ev.date, dateRange));
+
+    // 3. Render
+    if (eventsToDisplay.length > 0) {
+        renderEvents(filtered, grid);
+    }
+}
+
+function checkDateRange(eventDateIso, range) {
+    const eventDate = new Date(eventDateIso);
+    const now = new Date();
+
+    // Normalize "Today" to start of day for comparison
+    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const eventDayStart = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+
+    const diffTime = eventDayStart - todayStart;
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+
+    if (range === 'today') {
+        return diffDays === 0;
+    }
+    if (range === '3days') {
+        return diffDays >= 0 && diffDays <= 3;
+    }
+    if (range === '7days') {
+        return diffDays >= 0 && diffDays <= 7;
+    }
+    if (range === '30days') {
+        return diffDays >= 0 && diffDays <= 30;
+    }
+    return true;
+}
+
+function renderEvents(events, container) {
+    container.innerHTML = '';
+
+    if (events.length === 0) {
+        container.innerHTML = `
+        <div style="grid-column:1/-1; text-align:center; opacity:0.5; padding:40px; border:1px dashed rgba(255,255,255,0.1); border-radius:20px;">
+            No real events found for <strong>${currentDateRange.toUpperCase()}</strong>.
+        </div>`;
+        return;
+    }
+
+    events.forEach(ev => {
+        const card = document.createElement('div');
+        card.className = 'event-card';
+
+        const imgUrl = ev.image || 'https://via.placeholder.com/400x300?text=Event';
+
+        const dateObj = new Date(ev.date);
+        const month = dateObj.toLocaleString('default', { month: 'short' });
+        const day = dateObj.getDate();
+
+        card.innerHTML = `
+            <div class="event-image">
+                <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover; opacity:0.8;" onerror="this.src='https://via.placeholder.com/400x300?text=Event'">
+                <div class="date-badge">
+                    <span class="date-month">${month}</span>
+                    <span class="date-day">${day}</span>
+                </div>
+            </div>
+            <div class="event-content">
+                <div class="event-venue">${ev.venue || 'Venue'}</div>
+                <div class="event-title">${ev.title}</div>
+                
+                <div class="event-meta">
+                    <span class="tag">${ev.category || 'Event'}</span>
+                    <a href="${ev.link || '#'}" target="_blank" class="source-link">
+                        Source ↗
+                    </a>
+                </div>
+            </div>
+        `;
+        container.appendChild(card);
+    });
+}
+```
