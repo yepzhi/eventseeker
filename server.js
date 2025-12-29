@@ -94,6 +94,11 @@ async function analyzeWithGemini(text, venueContext) {
         console.error("❌ Missing GEMINI_API_KEY in environment variables.");
         return [];
     }
+    const API_KEY = process.env.GEMINI_API_KEY;
+    if (!API_KEY) {
+        console.error("❌ Missing GEMINI_API_KEY in environment variables.");
+        return [];
+    }
     // Reordered: prioritized gemini-pro (stable) over 1.5-flash (beta/404 prone)
     const MODELS = ['gemini-pro', 'gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-1.5-flash-8b'];
 
