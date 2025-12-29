@@ -96,27 +96,20 @@ async function analyzeWithGemini(text, venueContext) {
         console.error("❌ Missing GEMINI_API_KEY in environment variables.");
         return [];
     }
-    // Reordered: prioritized gemini-pro (stable) over 1.5-flash (beta/404 prone)
-    const MODELS = ['gemini-pro', 'gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-1.5-flash-8b'];
 
-    const promptText = `
-    You are an event scout for ${venueContext.city}.
-    Read the following website text from "${venueContext.id}" and extract upcoming events.
-    
-    Return a JSON object with an "events" array.
-    Each event must have:
-    - title: String (Clean title)
-    - date: String (YYYY-MM-DD or "Upcoming")
-    - description: String (Short summary, max 100 chars)
-    
-    If it's a login page, error, or purely generic info, return {"events": []}.
-    Limit to top 3 events.
-    
-    Text Snippet:
-    ${text.substring(0, 15000)}
-    `;
+    // Dynamic Discovery Logic (Cache results)
+    if (GLOBAL_CACHE.validModels && GLOBAL_CACHE.validModels.length > 0) {
+        // Use cached valid models
+    } else {
+        // Fallback or Initial List
+    }
 
-    for (const model of MODELS) {
+    // We will iterate GLOBAL_CACHE.validModels if available, else standard list
+    const candidates = (GLOBAL_CACHE.validModels && GLOBAL_CACHE.validModels.length > 0)
+        ? GLOBAL_CACHE.validModels
+        : ['gemini-pro', 'gemini-1.5-flash', 'gemini-1.0-pro', 'gemini-1.5-flash-8b'];
+
+    for (const model of candidates) {
         const URL = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
         try {
             // console.log(`Attempting model: ${model}...`);
@@ -320,5 +313,29 @@ app.get('/scrape', (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`EventSeeker AI running on http://localhost:${PORT}`);
-    console.log(`[System] Version 2.1 - Loaded with API Key Fix`);
+    console.log(`[System] Version 2.3 - Auto-Discovering Models...`);
+
+    // Auto-discover models on startup
+    const key = process.env.GEMINI_API_KEY;
+    if (key) {
+        fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`)
+            .then(res => res.json())
+            .then(data => {
+                if (data.models) {
+                    const valid = data.models
+                        .filter(m => m.supportedGenerationMethods.includes('generateContent'))
+                        .map(m => m.name.split('/').pop()); // remove 'models/' prefix
+
+                    if (valid.length > 0) {
+                        GLOBAL_CACHE.validModels = valid;
+                        console.log(`[System] ✅ Discovered ${valid.length} functioning models:`, valid.join(', '));
+                    } else {
+                        console.error(`[System] ❌ Key valid but NO generation models found.`);
+                    }
+                } else {
+                    console.error(`[System] ❌ Model Discovery Failed. API Response:`, JSON.stringify(data));
+                }
+            })
+            .catch(e => console.error(`[System] Discovery Error:`, e.message));
+    }
 });
