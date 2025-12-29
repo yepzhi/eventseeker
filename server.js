@@ -10,8 +10,8 @@ const PORT = process.env.PORT || 3000;
 // GEMINI CONFIG
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDDK0_8eokoXOOBF7EvgsiH2jKFoLMc7Wg';
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-// model: "gemini-pro" is the standard stable text model
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+// Fallback to "gemini-pro" as 1.5-flash is returning 404s
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
 app.use(cors());
 app.use(express.json());
