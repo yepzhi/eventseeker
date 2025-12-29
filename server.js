@@ -75,19 +75,21 @@ let GLOBAL_CACHE = {
 
 let CLIENTS = [];
 
-// --- SCHEDULED SCAN AT 5AM ONLY ---
-function scheduleScanAt5AM() {
+// --- SCHEDULED SCAN AT 5AM GMT-7 (= 12:00 UTC) ---
+function scheduleScanAt5AM_GMT7() {
     const now = new Date();
-    const next5AM = new Date(now);
-    next5AM.setHours(5, 0, 0, 0); // Set to 5:00:00 AM today
+    const next5AM_UTC = new Date(now);
+    // 5AM GMT-7 = 12:00 PM UTC (noon)
+    next5AM_UTC.setUTCHours(12, 0, 0, 0);
 
-    // If it's already past 5AM today, schedule for tomorrow
-    if (now >= next5AM) {
-        next5AM.setDate(next5AM.getDate() + 1);
+    // If it's already past 12:00 UTC today, schedule for tomorrow
+    if (now >= next5AM_UTC) {
+        next5AM_UTC.setUTCDate(next5AM_UTC.getUTCDate() + 1);
     }
 
-    const msUntil5AM = next5AM - now;
-    console.log(`[System] Next scan scheduled at 5:00 AM (in ${Math.round(msUntil5AM / 60000)} minutes).`);
+    const msUntil5AM = next5AM_UTC - now;
+    const hoursUntil = Math.round(msUntil5AM / 3600000);
+    console.log(`[System] Next scan scheduled at 5:00 AM GMT-7 (in ${hoursUntil} hours).`);
 
     setTimeout(async () => {
         await runBackgroundScrape();
@@ -95,7 +97,13 @@ function scheduleScanAt5AM() {
         setInterval(runBackgroundScrape, 1000 * 60 * 60 * 24);
     }, msUntil5AM);
 }
-scheduleScanAt5AM();
+
+// ONE-TIME: Run immediately since today's 5AM already passed
+console.log(`[System] Running ONE immediate scan (today's 5AM window missed).`);
+setTimeout(() => runBackgroundScrape(), 5000);
+
+// Then schedule future scans at 5AM GMT-7
+scheduleScanAt5AM_GMT7();
 
 // Helper: Serve Images (Screenshots)
 app.use('/screenshots', express.static('screenshots'));
