@@ -171,7 +171,7 @@ function runMockScrape() {
 
 // --- FILTER & API LOGIC ---
 
-const API_URL = 'http://localhost:3000'; // Dev URL, later specific to HuggingFace
+const API_URL = 'https://yepzhi-eventseeker.hf.space'; // Backend on Hugging Face
 
 async function filterEvents() {
     const citySelect = document.getElementById('citySelect');
@@ -308,4 +308,4 @@ function renderEvents(events, container) {
         container.appendChild(card);
     });
 }
-```
+}
