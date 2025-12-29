@@ -92,9 +92,13 @@ app.get('/scrape', async (req, res) => {
     try {
         sendLog(`Initializing Headless Browser...`);
 
-        const browser = await chromium.launch({ headless: true });
+        const browser = await chromium.launch({
+            headless: true,
+            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+        });
         const context = await browser.newContext({
-            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            userAgent: 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+            viewport: { width: 1280, height: 720 }
         });
 
         const realData = [];
@@ -114,10 +118,9 @@ app.get('/scrape', async (req, res) => {
                 // Progress update
                 sendLog(`[${index + 1}/${targets.length}] Scanning ${venue.id}...`);
 
-                // Fast Scan Mock-up behavior for stability in this version 1.0 (Real scraping logic is brittle without sophisticated selectors)
-                // For this request, we will ACTUALLY visit but timeout quickly if heavy
+                // Increased timeout to 25s for slower sites / HF network
                 try {
-                    await page.goto(venue.url, { waitUntil: 'domcontentloaded', timeout: 8000 });
+                    await page.goto(venue.url, { waitUntil: 'domcontentloaded', timeout: 30000 });
                 } catch (e) {
                     sendLog(`Timeout visiting ${venue.url}, skipping...`, 'warn');
                     continue;
