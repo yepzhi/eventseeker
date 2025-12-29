@@ -208,7 +208,6 @@ async function filterEvents() {
     const evtSource = new EventSource(`${API_URL}/scrape?city=${city}&category=${Category}`);
 
     evtSource.onmessage = function (event) {
-        // "close" event hack because standard EventSource doesn't always handle server close neatly
         if (event.data === 'close') {
             evtSource.close();
             return;
@@ -218,43 +217,61 @@ async function filterEvents() {
             const data = JSON.parse(event.data);
 
             if (data.type === 'log') {
-                // Append Log
+                // VISOR UPDATE
                 const line = document.createElement('div');
                 line.className = `log-line ${data.level || ''}`;
                 line.innerText = `> ${data.message}`;
                 visor.appendChild(line);
-                visor.scrollTop = visor.scrollHeight; // Auto-scroll
+                visor.scrollTop = visor.scrollHeight;
+
+                // BADGE UPDATE (Progress)
+                if (data.progress !== undefined) {
+                    const el = document.getElementById('updateText');
+                    const dot = document.querySelector('.pulse-dot');
+                    if (el) el.innerText = `Working (${data.progress}%)`;
+                    if (dot) dot.style.backgroundColor = '#eab308'; // Yellow
+                } else if (data.message.includes('Connecting')) {
+                    updateServerStatus(); // Reset to "Connecting" or time
+                }
             }
 
             if (data.type === 'result') {
                 // Final Data
-                evtSource.close();
+                // Don't close immediately if we want to keep stream open for updates, 
+                // BUT for user experience, stopping matching the behavior is fine.
+                // We keep it open if backend stays open.
+
                 eventsToDisplay = data.events || [];
 
                 if (data.timestamp) {
                     lastScrapeTime = new Date(data.timestamp);
-                    updateServerStatus();
+                    // Only update text to "Time ago" if NOT currently scanning
+                    // We let the 'log' messages drive the "Working%" status
+                    if (!data.events || data.events.length > 0) updateServerStatus();
                 }
 
-                // Render
-                // 2. Filter by Date (Only if we have events, otherwise empty)
-                const filtered = eventsToDisplay.filter(ev => checkDateRange(ev.date, dateRange));
+                // Render Logic
+                // If "Today" has 0 events, but we have data, switch to 30days automatically so user sees something
+                const todayEvents = eventsToDisplay.filter(ev => checkDateRange(ev.date, 'today'));
+                if (todayEvents.length === 0 && eventsToDisplay.length > 0 && currentDateRange === 'today') {
+                    currentDateRange = '30days';
+                    // Update Buttons UI
+                    document.querySelectorAll('.segment-btn').forEach(b => {
+                        b.classList.remove('active');
+                        if (b.dataset.range === '30days') b.classList.add('active');
+                    });
+                }
 
-                // 3. Render
+                const filtered = eventsToDisplay.filter(ev => checkDateRange(ev.date, currentDateRange));
+
                 if (eventsToDisplay.length > 0) {
                     renderEvents(filtered, grid);
                 } else {
                     grid.innerHTML = `
                         <div style="grid-column:1/-1; text-align:center; opacity:0.5; padding:40px;">
-                            No new events found during this scan.
+                            No events found in cache. System will retry in background.
                         </div>`;
                 }
-
-                // Visor can auto-hide or stay. Let's keep it but make it smaller or just say "Done"
-                const doneLine = document.createElement('div');
-                doneLine.className = 'log-line success';
-                doneLine.innerText = `> Scan Complete. Disconnected.`;
-                visor.appendChild(doneLine);
             }
 
         } catch (e) {
@@ -296,10 +313,10 @@ function checkDateRange(eventDateIso, range) {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
     if (range === 'today') {
-        return diffDays === 0;
+        return diffDays <= 1; // Allow 24h window
     }
     if (range === '3days') {
-        return diffDays >= 0 && diffDays <= 3;
+        return diffDays <= 3;
     }
     if (range === '7days') {
         return diffDays >= 0 && diffDays <= 7;
