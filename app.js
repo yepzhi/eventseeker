@@ -87,7 +87,7 @@ const INLINED_VENUES = [
 
 let venues = INLINED_VENUES;
 let allEvents = [];
-let currentDateRange = 'today';
+let currentDateRange = '3days';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Data Already Loaded (Inlined)
@@ -273,7 +273,7 @@ async function filterEvents() {
         console.error("EventSource failed:", err);
         evtSource.close();
 
-        // Update System Status to Error
+        // Update System Status to Error (stays red, no auto-retry)
         const statusEl = document.getElementById('systemStatus');
         if (statusEl) {
             statusEl.innerHTML = `
@@ -281,14 +281,7 @@ async function filterEvents() {
                 <span class="status-text">Error</span>
             `;
         }
-
-        // Silent Retry after 60s
-        console.log("EventSource disconnected. Retrying...");
-        setTimeout(() => {
-            if (evtSource.readyState === EventSource.CLOSED) {
-                filterEvents(); // Re-try connection
-            }
-        }, 60000);
+        console.log("EventSource disconnected. Refresh page to retry.");
     };
 
     // 2. Filter by Date (Only if we have events, otherwise empty)
