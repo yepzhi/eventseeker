@@ -24,9 +24,55 @@ app.use(express.static('.'));
 
 // --- CONFIGURATION ---
 const VENUES = [
-    { id: 'parque_la_ruina', city: 'Hermosillo', category: 'General', url: 'https://www.facebook.com/ParqueLaRuinaHMO' },
-    { id: 'el_foro', city: 'Tijuana', category: 'Conciertos', url: 'https://www.facebook.com/ElForoTijuana' },
-    { id: 'rialto', city: 'Tucson', category: 'Conciertos', url: 'https://www.rialto.com' } // Example real site
+    // HERMOSILLO
+    { id: 'parque_la_ruina', city: 'Hermosillo', category: 'General', url: 'https://www.instagram.com/parquelaruinahmo/?hl=es' },
+    { id: 'gran_casona', city: 'Hermosillo', category: 'General', url: 'https://www.instagram.com/lagrancasonahmo/?hl=es' },
+    { id: 'hermosillo_gob', city: 'Hermosillo', category: 'Cultura', url: 'https://www.instagram.com/hermosillogob/' },
+    { id: 'hermochilo', city: 'Hermosillo', category: 'General', url: 'https://www.instagram.com/hermochilo.son/' },
+    { id: 'eventbrite_hmo', city: 'Hermosillo', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--sonora/hermosillo/' },
+    { id: 'guia_de_hoy_hmo', city: 'Hermosillo', category: 'General', url: 'https://guiadehoy.com/hermosillo/eventos' },
+    { id: 'cada_evento_son', city: 'Hermosillo', category: 'General', url: 'https://www.facebook.com/cadaeventoson/?locale=es_LA' },
+    { id: 'conciertos_hmo', city: 'Hermosillo', category: 'Conciertos', url: 'https://www.instagram.com/conciertoshermosillo/' },
+    { id: 'bandsintown_hmo', city: 'Hermosillo', category: 'Conciertos', url: 'https://www.bandsintown.com/es/c/hermosillo-mexico' },
+    { id: 'feverup_hmo', city: 'Hermosillo', category: 'General', url: 'https://feverup.com/es/hermosillo?srsltid=AfmBOorCm6uf0GE-QguGplb6K2wLHOcO8KpPj9pp0Dl8Dvqy7zc3K_w_ ' },
+    { id: 'noro_mx', city: 'Hermosillo', category: 'Conciertos', url: 'https://noro.mx/hermosillo/agenda-conciertos-en-hermosillo-para-2025/' },
+
+    // SONORA (GENERAL)
+    { id: 'eventbrite_sonora', city: 'Sonora', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--sonora/events/' },
+    { id: 'visit_sonora', city: 'Sonora', category: 'Turismo', url: 'https://www.visitsonora.mx/eventos.php' },
+    { id: 'zona_turistica_son', city: 'Sonora', category: 'Turismo', url: 'https://www.zonaturistica.com/eventos-en/sonora' },
+
+    // BAJA CALIFORNIA (GENERAL/TIJUANA/ENSENADA/MEXICALI)
+    { id: 'zona_turistica_bc', city: 'Baja California', category: 'Turismo', url: 'https://www.zonaturistica.com/eventos/baja-california' },
+    { id: 'eventbrite_bc', city: 'Baja California', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--baja-california/events/' },
+    { id: 'feverup_tijuana_venue', city: 'Tijuana', category: 'Conciertos', url: 'https://feverup.com/es/tijuana/venue/baja-california-center?srsltid=AfmBOopo9urcEqNNQTvkxnTvWjJPPNg6Vv74UQx4m3uvWabZ9v497cY7' },
+    { id: 'rosarito_organizer', city: 'Rosarito', category: 'General', url: 'https://www.rosarito.org/eventos/' },
+    { id: 'tijuana_eventos_ig', city: 'Tijuana', category: 'General', url: 'https://www.instagram.com/tijuanaeventos/?hl=es' },
+    { id: 'tijuana_eventos_ensenada', city: 'Ensenada', category: 'General', url: 'https://tijuanaeventos.com/eventos-en-ensenada/' },
+    { id: 'eventbrite_ensenada', city: 'Ensenada', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--baja-california/ensenada/' },
+    { id: 'tijuana_eventos_mexicali', city: 'Mexicali', category: 'General', url: 'https://tijuanaeventos.com/eventos-en-mexicali/' },
+    { id: 'eventbrite_mexicali', city: 'Mexicali', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--mexicali/events/' },
+
+    // BAJA CALIFORNIA SUR
+    { id: 'eventbrite_bcs', city: 'Baja California Sur', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--baja-california-sur/events/' },
+    { id: 'zona_turistica_bcs', city: 'Baja California Sur', category: 'Turismo', url: 'https://www.zonaturistica.com/eventos-en/baja-california-sur' },
+
+    // NOGALES
+    { id: 'eventos_nogales_ig', city: 'Nogales', category: 'General', url: 'https://www.instagram.com/eventosociales.nogales/?hl=es' },
+    { id: 'eventbrite_nogales', city: 'Nogales', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--heroica-nogales/events/' },
+    { id: 'bandsintown_nogales', city: 'Nogales', category: 'Conciertos', url: 'https://www.bandsintown.com/es/c/nogales-mexico' },
+    { id: 'guia_de_hoy_nogales', city: 'Nogales', category: 'General', url: 'https://guiadehoy.com/nogales-sonora-11/eventos' },
+
+    // ARIZONA (GENERAL/PHOENIX/TUCSON)
+    { id: 'eventbrite_az', city: 'Arizona', category: 'General', url: 'https://www.eventbrite.com.mx/d/united-states--arizona/events/' },
+    { id: 'visit_arizona', city: 'Arizona', category: 'Turismo', url: 'https://www.visitarizona.com/events' },
+    { id: 'fb_group_az', city: 'Arizona', category: 'General', url: 'https://www.facebook.com/groups/1087676634907142/' },
+    { id: 'local_first_az', city: 'Arizona', category: 'General', url: 'https://localfirstaz.com/events' },
+    { id: 'my_events_center_az', city: 'Arizona', category: 'General', url: 'https://tu.myeventscenter.com/browseByState/AZ/1' },
+    { id: 'visit_phoenix', city: 'Phoenix', category: 'Turismo', url: 'https://www.visitphoenix.com/events/next-30-days/' },
+    { id: 'dtphx', city: 'Phoenix', category: 'General', url: 'https://dtphx.org/events/calendar' },
+    { id: 'tucson_jazz_festival', city: 'Tucson', category: 'Conciertos', url: 'https://tucsonjazzfestival.org/get-jazz-festival-tickets/?gad_source=1&gad_campaignid=23053188849&gbraid=0AAAABBa1xjmymByVZewMv2ZP4JF-maHlj&gclid=Cj0KCQiA6sjKBhCSARIsAJvYcpOgwb-4R1ZVc6XctOu7RwQLZqwbdZ11j1P_zvEY-VT2NUkvyT0CadUaApdJEALw_wcB' },
+    { id: 'visit_tucson', city: 'Tucson', category: 'Turismo', url: 'https://www.visittucson.org/events/this-weekend/' },
 ];
 
 // Trigger Scrape Endpoint
