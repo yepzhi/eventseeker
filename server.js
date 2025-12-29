@@ -90,10 +90,7 @@ if (!fs.existsSync('screenshots')) fs.mkdirSync('screenshots');
 async function analyzeWithGemini(text, venueContext) {
     if (!text || text.length < 50) return [];
 
-    if (!API_KEY) {
-        console.error("❌ Missing GEMINI_API_KEY in environment variables.");
-        return [];
-    }
+
     const API_KEY = process.env.GEMINI_API_KEY;
     if (!API_KEY) {
         console.error("❌ Missing GEMINI_API_KEY in environment variables.");
