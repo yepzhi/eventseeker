@@ -291,14 +291,62 @@ async function runBackgroundScrape() {
         await browser.close();
 
         // Update Cache
+        // --- PERSISTENCE HELPERS ---
+        const CACHE_FILE = 'events_db.json';
+        function loadCache() {
+            try {
+                if (fs.existsSync(CACHE_FILE)) {
+                    const data = fs.readFileSync(CACHE_FILE, 'utf8');
+                    const json = JSON.parse(data);
+                    GLOBAL_CACHE.events = json.events || [];
+                    GLOBAL_CACHE.timestamp = json.timestamp;
+                    GLOBAL_CACHE.nextScan = json.nextScan;
+                    console.log(`[System] Loaded ${GLOBAL_CACHE.events.length} events from disk.`);
+                }
+            } catch (e) {
+                console.error("Failed to load cache:", e.message);
+            }
+        }
+
+        function saveCache() {
+            try {
+                fs.writeFileSync(CACHE_FILE, JSON.stringify({
+                    events: GLOBAL_CACHE.events,
+                    timestamp: GLOBAL_CACHE.timestamp,
+                    nextScan: GLOBAL_CACHE.nextScan
+                }, null, 2));
+                console.log(`[System] Saved ${GLOBAL_CACHE.events.length} events to disk.`);
+            } catch (e) {
+                console.error("Failed to save cache:", e.message);
+            }
+        }
+
+        // Load on startup
+        loadCache();
+
+        // ... inside runBackgroundScrape ...
         if (newEvents.length > 0) {
-            GLOBAL_CACHE.events = newEvents;
+            // MERGE LOGIC (Prevent overwriting good data with partial scans)
+            let addedCount = 0;
+            const existingIds = new Set(GLOBAL_CACHE.events.map(e => e.title + e.date)); // Simple dedup key
+
+            newEvents.forEach(evt => {
+                const key = evt.title + evt.date;
+                if (!existingIds.has(key)) {
+                    GLOBAL_CACHE.events.push(evt);
+                    addedCount++;
+                }
+            });
+
             GLOBAL_CACHE.timestamp = new Date().toISOString();
-            GLOBAL_CACHE.nextScan = Date.now() + SCRAPE_INTERVAL; // Next run logic
-            log(`Scan Complete. ${newEvents.length} events found.`, 'success', 100);
-            broadcast({ type: 'result', events: newEvents, timestamp: GLOBAL_CACHE.timestamp, nextScan: GLOBAL_CACHE.nextScan });
+            GLOBAL_CACHE.nextScan = Date.now() + SCRAPE_INTERVAL;
+
+            saveCache(); // Persist to disk
+
+            log(`Scan Complete. Found ${newEvents.length} new. Merged Total: ${GLOBAL_CACHE.events.length}.`, 'success', 100);
+            broadcast({ type: 'result', events: GLOBAL_CACHE.events, timestamp: GLOBAL_CACHE.timestamp, nextScan: GLOBAL_CACHE.nextScan });
         } else {
-            log(`Scan finished. No events found.`, 'warn', 100);
+            log(`Scan finished. No new events found.`, 'warn', 100);
             GLOBAL_CACHE.nextScan = Date.now() + SCRAPE_INTERVAL;
             broadcast({ type: 'result', events: GLOBAL_CACHE.events, timestamp: GLOBAL_CACHE.timestamp, nextScan: GLOBAL_CACHE.nextScan });
         }
