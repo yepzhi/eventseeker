@@ -86,13 +86,12 @@ const fs = require('fs');
 if (!fs.existsSync('screenshots')) fs.mkdirSync('screenshots');
 
 // --- AI HELPER (REST API) ---
-// Using raw fetch like RichmondBot to avoid SDK version issues
+// Using raw fetch with Fallback Loop (RichmondBot Strategy)
 async function analyzeWithGemini(text, venueContext) {
     if (!text || text.length < 50) return [];
 
     const API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDDK0_8eokoXOOBF7EvgsiH2jKFoLMc7Wg';
-    const MODEL = 'gemini-1.5-flash'; // Standard Flash Model
-    const URL = `https://generativelanguage.googleapis.com/v1beta/models/${MODEL}:generateContent?key=${API_KEY}`;
+    const MODELS = ['gemini-1.5-flash', 'gemini-1.5-flash-latest', 'gemini-pro', 'gemini-1.0-pro'];
 
     const promptText = `
     You are an event scout for ${venueContext.city}.
@@ -111,37 +110,46 @@ async function analyzeWithGemini(text, venueContext) {
     ${text.substring(0, 15000)}
     `;
 
-    try {
-        const response = await fetch(URL, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                contents: [{
-                    parts: [{ text: promptText }]
-                }]
-            })
-        });
+    for (const model of MODELS) {
+        const URL = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${API_KEY}`;
+        try {
+            // console.log(`Attempting model: ${model}...`);
+            const response = await fetch(URL, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    contents: [{
+                        parts: [{ text: promptText }]
+                    }]
+                })
+            });
 
-        if (!response.ok) {
-            const err = await response.text();
-            console.error(`Gemini API Error (${response.status}):`, err);
-            return [];
+            if (!response.ok) {
+                if (response.status === 404 || response.status === 503) {
+                    // Try next model
+                    continue;
+                }
+                // Other error? Log and break or continue?
+                console.error(`Gemini ${model} Error (${response.status})`);
+                continue;
+            }
+
+            const data = await response.json();
+            const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (!rawText) return [];
+
+            const jsonText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+            const parsed = JSON.parse(jsonText);
+            return parsed.events || [];
+
+        } catch (e) {
+            console.warn(`Model ${model} failed:`, e.message);
+            // Try next
         }
-
-        const data = await response.json();
-        // Extract Text
-        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (!rawText) return [];
-
-        // Clean JSON
-        const jsonText = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-        const parsed = JSON.parse(jsonText);
-        return parsed.events || [];
-
-    } catch (e) {
-        console.error("Gemini Parse Error:", e.message);
-        return [];
     }
+
+    console.error("All Gemini models failed.");
+    return [];
 }
 
 // --- BACKGROUND SCRAPER ---
