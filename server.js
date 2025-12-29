@@ -200,7 +200,14 @@ async function runBackgroundScrape() {
     try {
         const browser = await chromium.launch({
             headless: true,
-            args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu']
+            args: [
+                '--no-sandbox',
+                '--disable-setuid-sandbox',
+                '--disable-gpu',
+                '--disable-dev-shm-usage', // Critical for Docker/HF Spaces
+                '--dns-result-order=ipv4first', // Fixes Node 17+ DNS issues
+                '--disable-blink-features=AutomationControlled' // Evasion
+            ]
         });
 
         const context = await browser.newContext({
