@@ -460,3 +460,60 @@ body::before {
 .lang-flag {
     font-size: 1.2em;
 }
+
+/* --- MOBILE RESPONSIVENESS --- */
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .glass-container {
+        padding: 20px;
+        min-height: auto;
+    }
+
+    .header h1 {
+        font-size: 2.2em;
+        /* Smaller Title */
+        margin-top: 40px;
+        /* Space for Lang Toggle */
+    }
+
+    .header p {
+        font-size: 0.9em;
+        padding: 0 10px;
+    }
+
+    /* Stack Controls */
+    .controls-row {
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .control-group {
+        min-width: 100%;
+    }
+
+    /* Date Toggles wrap */
+    .segmented-control {
+        flex-wrap: wrap;
+    }
+
+    .segment-btn {
+        flex: 1 1 45%;
+        /* 2 per row */
+        font-size: 0.85em;
+        padding: 10px;
+    }
+
+    /* Grid becomes 1 column */
+    .events-grid {
+        grid-template-columns: 1fr;
+    }
+
+    /* Move Lang Toggle to avoid overlap */
+    .nav-lang-btn {
+        padding: 6px 10px;
+        font-size: 0.8em;
+    }
+}
