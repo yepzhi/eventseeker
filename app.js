@@ -284,8 +284,16 @@ async function filterEvents() {
         line.innerText = `> Connection lost. Retrying manually in 60s.`;
         visor.appendChild(line);
 
-        // Update badge
-        updateServerStatus(true);
+        // Silent Retry - Don't panic the user
+        console.log("EventSource disconnected. Retrying...");
+        // updateServerStatus(true); // Disable visual error
+        // Let it reconnect automatically (browser standard behavior) or we can set a timeout
+        setTimeout(() => {
+            if (evtSource.readyState === EventSource.CLOSED) {
+                // Re-init if needed, but usually EventSource auto-retries.
+                // We just leave the UI as is.
+            }
+        }, 5000);
     };
 
     // 2. Filter by Date (Only if we have events, otherwise empty)
@@ -350,7 +358,10 @@ function renderEvents(events, container) {
             </div>
             
             <div class="row-info">
-                <div class="row-title">${ev.title}</div>
+                <div class="row-title">
+                    ${ev.title} 
+                    ${ev.aiVerified ? '<span style="font-size:0.6em; background:#22c55e; color:black; padding:2px 4px; border-radius:4px; margin-left:6px;">AI Verified ✨</span>' : ''}
+                </div>
                 <div class="row-venue">${ev.venue.name} • ${ev.venue.city}</div>
             </div>
 

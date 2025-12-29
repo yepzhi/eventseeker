@@ -1,10 +1,16 @@
 const express = require('express');
 const cors = require('cors');
 const { chromium } = require('playwright');
+const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+// GEMINI CONFIG
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDDK0_8eokoXOOBF7EvgsiH2jKFoLMc7Wg';
+const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
 app.use(cors());
 app.use(express.json());
@@ -42,37 +48,19 @@ const VENUES = [
     { id: 'visit_sonora', city: 'Sonora', category: 'Turismo', url: 'https://www.visitsonora.mx/eventos.php' },
     { id: 'zona_turistica_son', city: 'Sonora', category: 'Turismo', url: 'https://www.zonaturistica.com/eventos-en/sonora' },
 
-    // BAJA CALIFORNIA (GENERAL/TIJUANA/ENSENADA/MEXICALI)
+    // BAJA CALIFORNIA
     { id: 'zona_turistica_bc', city: 'Baja California', category: 'Turismo', url: 'https://www.zonaturistica.com/eventos/baja-california' },
     { id: 'eventbrite_bc', city: 'Baja California', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--baja-california/events/' },
-    { id: 'feverup_tijuana_venue', city: 'Tijuana', category: 'Conciertos', url: 'https://feverup.com/es/tijuana/venue/baja-california-center?srsltid=AfmBOopo9urcEqNNQTvkxnTvWjJPPNg6Vv74UQx4m3uvWabZ9v497cY7' },
+    { id: 'feverup_tijuana_venue', city: 'Tijuana', category: 'Conciertos', url: 'https://feverup.com/es/tijuana/venue/baja-california-center?srsltid=AfmBOopo9urcEqNNNNQTvkxnTvWjJPPNg6Vv74UQx4m3uvWabZ9v497cY7' },
     { id: 'rosarito_organizer', city: 'Rosarito', category: 'General', url: 'https://www.rosarito.org/eventos/' },
     { id: 'tijuana_eventos_ig', city: 'Tijuana', category: 'General', url: 'https://www.instagram.com/tijuanaeventos/?hl=es' },
     { id: 'tijuana_eventos_ensenada', city: 'Ensenada', category: 'General', url: 'https://tijuanaeventos.com/eventos-en-ensenada/' },
-    { id: 'eventbrite_ensenada', city: 'Ensenada', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--baja-california/ensenada/' },
-    { id: 'tijuana_eventos_mexicali', city: 'Mexicali', category: 'General', url: 'https://tijuanaeventos.com/eventos-en-mexicali/' },
-    { id: 'eventbrite_mexicali', city: 'Mexicali', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--mexicali/events/' },
 
-    // BAJA CALIFORNIA SUR
-    { id: 'eventbrite_bcs', city: 'Baja California Sur', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--baja-california-sur/events/' },
-    { id: 'zona_turistica_bcs', city: 'Baja California Sur', category: 'Turismo', url: 'https://www.zonaturistica.com/eventos-en/baja-california-sur' },
-
-    // NOGALES
-    { id: 'eventos_nogales_ig', city: 'Nogales', category: 'General', url: 'https://www.instagram.com/eventosociales.nogales/?hl=es' },
-    { id: 'eventbrite_nogales', city: 'Nogales', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--heroica-nogales/events/' },
-    { id: 'bandsintown_nogales', city: 'Nogales', category: 'Conciertos', url: 'https://www.bandsintown.com/es/c/nogales-mexico' },
-    { id: 'guia_de_hoy_nogales', city: 'Nogales', category: 'General', url: 'https://guiadehoy.com/nogales-sonora-11/eventos' },
-
-    // ARIZONA (GENERAL/PHOENIX/TUCSON)
+    // ARIZONA
     { id: 'eventbrite_az', city: 'Arizona', category: 'General', url: 'https://www.eventbrite.com.mx/d/united-states--arizona/events/' },
     { id: 'visit_arizona', city: 'Arizona', category: 'Turismo', url: 'https://www.visitarizona.com/events' },
-    { id: 'fb_group_az', city: 'Arizona', category: 'General', url: 'https://www.facebook.com/groups/1087676634907142/' },
-    { id: 'local_first_az', city: 'Arizona', category: 'General', url: 'https://localfirstaz.com/events' },
-    { id: 'my_events_center_az', city: 'Arizona', category: 'General', url: 'https://tu.myeventscenter.com/browseByState/AZ/1' },
     { id: 'visit_phoenix', city: 'Phoenix', category: 'Turismo', url: 'https://www.visitphoenix.com/events/next-30-days/' },
-    { id: 'dtphx', city: 'Phoenix', category: 'General', url: 'https://dtphx.org/events/calendar' },
-    { id: 'tucson_jazz_festival', city: 'Tucson', category: 'Conciertos', url: 'https://tucsonjazzfestival.org/get-jazz-festival-tickets/?gad_source=1&gad_campaignid=23053188849&gbraid=0AAAABBa1xjmymByVZewMv2ZP4JF-maHlj&gclid=Cj0KCQiA6sjKBhCSARIsAJvYcpOgwb-4R1ZVc6XctOu7RwQLZqwbdL11j1P_zvEY-VT2NUkvyT0CadUaApdJEALw_wcB' },
-    { id: 'visit_tucson', city: 'Tucson', category: 'Turismo', url: 'https://www.visittucson.org/events/this-weekend/' },
+    { id: 'dtphx', city: 'Phoenix', category: 'General', url: 'https://dtphx.org/events/calendar' }
 ];
 
 // Trigger Scrape Endpoint (SSE Streaming)
@@ -84,6 +72,8 @@ let GLOBAL_CACHE = {
     isScanning: false
 };
 
+let CLIENTS = [];
+
 // Start Background Loop
 const SCRAPE_INTERVAL = 1000 * 60 * 60; // 1 Hour
 setTimeout(() => runBackgroundScrape(), 5000); // Run 5s after start
@@ -94,18 +84,54 @@ app.use('/screenshots', express.static('screenshots'));
 const fs = require('fs');
 if (!fs.existsSync('screenshots')) fs.mkdirSync('screenshots');
 
+// --- AI HELPER ---
+async function analyzeWithGemini(text, venueContext) {
+    if (!text || text.length < 50) return null;
+
+    const prompt = `
+    Analyze this text from a webpage about events in ${venueContext.city} (${venueContext.id}).
+    Extract the single most important UPCOMING event mentioned.
+    If the text is just a login page, error message, or generic site description with no specific events, return NULL.
+    
+    Return JSON ONLY:
+    {
+      "title": "Event Name",
+      "date": "YYYY-MM-DD",
+      "isValid": boolean
+    }
+    
+    Text: ${text.substring(0, 5000)}
+    `;
+
+    try {
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const jsonText = response.text().replace(/```json/g, '').replace(/```/g, '').trim();
+        return JSON.parse(jsonText);
+    } catch (e) {
+        return null;
+    }
+}
+
 // --- BACKGROUND SCRAPER ---
 async function runBackgroundScrape() {
     if (GLOBAL_CACHE.isScanning) return;
     GLOBAL_CACHE.isScanning = true;
     GLOBAL_CACHE.logs = []; // Clear logs for new run
 
-    const log = (msg, type = 'info') => {
-        console.log(`[Scraper] ${msg}`);
-        GLOBAL_CACHE.logs.push({ message: msg, level: type, time: Date.now() });
+    const broadcast = (data) => {
+        CLIENTS.forEach(res => res.write(`data: ${JSON.stringify(data)}\n\n`));
     };
 
-    log('Starting scheduled auto-scrape...');
+    const log = (msg, type = 'info', progress = null) => {
+        console.log(`[Scraper] ${msg}`);
+        const logEntry = { type: 'log', message: msg, level: type, time: Date.now() };
+        if (progress !== null) logEntry.progress = progress;
+        GLOBAL_CACHE.logs.push(logEntry);
+        broadcast(logEntry);
+    };
+
+    log('Starting AI-Powered Scan...', 'info', 0);
 
     try {
         const browser = await chromium.launch({
@@ -118,70 +144,71 @@ async function runBackgroundScrape() {
             viewport: { width: 1280, height: 800 }
         });
 
-        const page = await context.newPage();
-
-        // Block heavy resources
-        await page.route('**/*', (route) => {
-            const type = route.request().resourceType();
-            if (['font', 'stylesheet', 'media'].includes(type)) route.abort();
-            else route.continue();
-        });
-
+        const targets = VENUES;
         const newEvents = [];
 
-        for (const [index, venue] of VENUES.entries()) {
-            try {
-                log(`[${index + 1}/${VENUES.length}] Visiting ${venue.id}...`);
+        for (const [index, venue] of targets.entries()) {
+            let page = null;
+            const progressPct = Math.round(((index + 1) / targets.length) * 100);
 
+            try {
+                log(`[${index + 1}/${targets.length}] scanning ${venue.id}...`, 'info', progressPct);
+
+                page = await context.newPage();
+
+                // Block heavy resources
+                await page.route('**/*', (route) => {
+                    const type = route.request().resourceType();
+                    if (['font', 'stylesheet', 'media', 'image'].includes(type)) route.abort();
+                    else route.continue();
+                });
+
+                let navSuccess = false;
                 try {
-                    await page.goto(venue.url, { waitUntil: 'domcontentloaded', timeout: 20000 });
-                    await page.waitForTimeout(1000); // Slight settle
+                    await page.goto(venue.url, { waitUntil: 'domcontentloaded', timeout: 15000 });
+                    // await page.waitForTimeout(1000); // Slight settle
+                    navSuccess = true;
                 } catch (e) {
-                    log(`Timeout/Error visiting ${venue.url}`, 'warn');
+                    log(`Timeout: ${venue.id}`, 'warn', progressPct);
                     // Even if timeout, we might have content loaded? Try anyway.
                 }
 
-                // Metadata Extraction
-                let title = await page.title();
-                let ogTitle = await page.locator('meta[property="og:title"]').getAttribute('content').catch(() => title);
-                let ogImage = await page.locator('meta[property="og:image"]').getAttribute('content').catch(() => '');
+                if (navSuccess) {
+                    // 1. Get Text for AI
+                    const bodyText = await page.innerText('body');
 
-                // SCREENSHOT FALLBACK (The "Image Scanning" solution)
-                // If no good image found, or just as a robust detail, capture the visible area
-                let screenshotUrl = ogImage;
-                if (!ogImage || ogImage.length < 10) {
-                    const filename = `${venue.id}_${Date.now()}.jpg`;
-                    const path = `screenshots/${filename}`;
-                    await page.screenshot({ path: path, quality: 60, type: 'jpeg' });
-                    screenshotUrl = `/screenshots/${filename}`; // Relative URL served by express
-                    log(`> Captured screenshot for ${venue.id}`, 'info');
-                }
+                    // 2. Call Gemini
+                    log(`> Analyzing text with Gemini AI...`, 'info', progressPct);
+                    const aiResult = await analyzeWithGemini(bodyText, venue);
 
-                if (ogTitle && ogTitle !== 'No Title') {
-                    // FILTER GARBAGE
-                    const BAD_PATTERNS = [/Cloudflare/i, /Attention Required/i, /Forbidden/i, /Just a moment/i, /Access Denied/i, /403/];
-                    if (BAD_PATTERNS.some(p => p.test(ogTitle))) {
-                        log(`> Skipping garbage title: ${ogTitle}`, 'warn', progressPct);
-                    } else {
+                    // 3. Fallback to Screenshot if AI finds nothing but page loaded? 
+                    // No, for now we trust AI. If AI says garbage, it's garbage.
+
+                    if (aiResult && aiResult.isValid && aiResult.title) {
                         newEvents.push({
                             id: venue.id + '_' + Date.now(),
-                            title: (ogTitle || title).replace(' | Facebook', '').replace(/[\n\r]/g, ' ').substring(0, 80),
+                            title: aiResult.title,
                             venue: {
                                 name: venue.id.replace(/_/g, ' ').toUpperCase(),
                                 city: venue.city,
                                 category: venue.category,
                                 url: venue.url
                             },
-                            date: new Date().toISOString(),
-                            image: screenshotUrl,
-                            link: venue.url
+                            date: aiResult.date || new Date().toISOString(),
+                            image: '', // No images in list view anyway
+                            link: venue.url,
+                            aiVerified: true
                         });
-                        log(`> Found: ${ogTitle.substring(0, 15)}...`, 'success', progressPct);
+                        log(`> AI Found: ${aiResult.title}`, 'success', progressPct);
+                    } else {
+                        log(`> AI: No valid events found.`, 'warn', progressPct);
                     }
                 }
 
             } catch (err) {
-                log(`Failed ${venue.id}: ${err.message}`, 'error');
+                log(`Failed ${venue.id}: ${err.message}`, 'error', progressPct);
+            } finally {
+                if (page) await page.close().catch(() => { });
             }
         }
 
@@ -191,13 +218,15 @@ async function runBackgroundScrape() {
         if (newEvents.length > 0) {
             GLOBAL_CACHE.events = newEvents;
             GLOBAL_CACHE.timestamp = new Date().toISOString();
-            log(`Scrape Complete. ${newEvents.length} events cached.`, 'success');
+            log(`Scan Complete. ${newEvents.length} events found.`, 'success', 100);
+            broadcast({ type: 'result', events: newEvents, timestamp: GLOBAL_CACHE.timestamp });
         } else {
-            log(`Scrape finished but no events found. Keeping old cache.`, 'warn');
+            log(`Scan finished. No events found.`, 'warn', 100);
+            broadcast({ type: 'result', events: GLOBAL_CACHE.events, timestamp: GLOBAL_CACHE.timestamp });
         }
 
     } catch (e) {
-        log(`CRITICAL SCRAPER ERROR: ${e.message}`, 'error');
+        log(`CRITICAL ERROR: ${e.message}`, 'error');
     } finally {
         GLOBAL_CACHE.isScanning = false;
     }
@@ -211,15 +240,24 @@ app.get('/scrape', (req, res) => {
 
     const { city, category } = req.query;
 
-    res.write(`data: ${JSON.stringify({ type: 'log', message: 'Connected to EventSeeker Cache.', level: 'info' })}\n\n`);
+    CLIENTS.push(res);
+
+    const pingId = setInterval(() => res.write(': keepalive\n\n'), 15000);
+
+    req.on('close', () => {
+        clearInterval(pingId);
+        CLIENTS = CLIENTS.filter(c => c !== res);
+    });
+
+    res.write(`data: ${JSON.stringify({ type: 'log', message: 'Connected to AI Engine.', level: 'info' })}\n\n`);
 
     if (GLOBAL_CACHE.isScanning) {
-        res.write(`data: ${JSON.stringify({ type: 'log', message: 'System is currently scraping updates...', level: 'warn' })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'log', message: 'Gemini is analyzing sources...', level: 'warn' })}\n\n`);
     } else if (GLOBAL_CACHE.timestamp) {
-        const agos = Math.floor((Date.now() - new Date(GLOBAL_CACHE.timestamp)) / 60000);
-        res.write(`data: ${JSON.stringify({ type: 'log', message: `Serving results from ${agos} mins ago.`, level: 'success' })}\n\n`);
+        // const agos = Math.floor((Date.now() - new Date(GLOBAL_CACHE.timestamp)) / 60000);
+        res.write(`data: ${JSON.stringify({ type: 'log', message: 'Serving AI-Verified Results.', level: 'success' })}\n\n`);
     } else {
-        res.write(`data: ${JSON.stringify({ type: 'log', message: 'First scrape pending... Please wait.', level: 'warn' })}\n\n`);
+        res.write(`data: ${JSON.stringify({ type: 'log', message: 'First scan pending... Please wait.', level: 'warn' })}\n\n`);
     }
 
     // Filter Cache
@@ -230,10 +268,10 @@ app.get('/scrape', (req, res) => {
     // Send Result
     res.write(`data: ${JSON.stringify({ type: 'result', events: filtered, timestamp: GLOBAL_CACHE.timestamp })}\n\n`);
 
-    res.write('event: close\ndata: close\n\n');
-    res.end();
+    // res.write('event: close\ndata: close\n\n'); // Removed as clients are managed by CLIENTS array
+    // res.end(); // Removed as clients are managed by CLIENTS array
 });
 
 app.listen(PORT, () => {
-    console.log(`EventSeeker Scraper running on http://localhost:${PORT}`);
+    console.log(`EventSeeker AI running on http://localhost:${PORT}`);
 });
