@@ -325,46 +325,40 @@ function checkDateRange(eventDateIso, range) {
 
 function renderEvents(events, container) {
     container.innerHTML = '';
+    container.className = 'events-list'; // Switch to List View
 
     if (events.length === 0) {
         container.innerHTML = `
-        <div style="grid-column:1/-1; text-align:center; opacity:0.5; padding:40px; border:1px dashed rgba(255,255,255,0.1); border-radius:20px;">
+        <div style="text-align:center; opacity:0.5; padding:40px; border:1px dashed rgba(255,255,255,0.1); border-radius:20px;">
             No real events found for <strong>${currentDateRange.toUpperCase()}</strong>.
         </div>`;
         return;
     }
 
     events.forEach(ev => {
-        const card = document.createElement('div');
-        card.className = 'event-card';
-
-        const imgUrl = ev.image || 'https://via.placeholder.com/400x300?text=Event';
+        const row = document.createElement('div');
+        row.className = 'event-row';
 
         const dateObj = new Date(ev.date);
         const month = dateObj.toLocaleString('default', { month: 'short' });
         const day = dateObj.getDate();
 
-        card.innerHTML = `
-            <div class="event-image">
-                <img src="${imgUrl}" style="width:100%; height:100%; object-fit:cover; opacity:0.8;" onerror="this.src='https://via.placeholder.com/400x300?text=Event'">
-                <div class="date-badge">
-                    <span class="date-month">${month}</span>
-                    <span class="date-day">${day}</span>
-                </div>
+        row.innerHTML = `
+            <div class="row-date">
+                <span class="row-month">${month}</span>
+                <span class="row-day">${day}</span>
             </div>
-            <div class="event-content">
-                <div class="event-venue">${ev.venue || 'Venue'}</div>
-                <div class="event-title">${ev.title}</div>
-                
-                <div class="event-meta">
-                    <span class="tag">${ev.category || 'Event'}</span>
-                    <a href="${ev.link || '#'}" target="_blank" class="source-link">
-                        More Info ↗
-                    </a>
-                </div>
+            
+            <div class="row-info">
+                <div class="row-title">${ev.title}</div>
+                <div class="row-venue">${ev.venue.name} • ${ev.venue.city}</div>
             </div>
+
+            <a href="${ev.link}" target="_blank" class="row-btn" title="View Details">
+                ➜
+            </a>
         `;
-        container.appendChild(card);
+        container.appendChild(row);
     });
 }
 

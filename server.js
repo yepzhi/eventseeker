@@ -157,21 +157,27 @@ async function runBackgroundScrape() {
                     log(`> Captured screenshot for ${venue.id}`, 'info');
                 }
 
-                if (ogTitle) {
-                    newEvents.push({
-                        id: venue.id + '_' + Date.now(),
-                        title: (ogTitle || title).replace(' | Facebook', '').replace(/[\n\r]/g, ' ').substring(0, 80),
-                        venue: {
-                            name: venue.id.replace(/_/g, ' ').toUpperCase(),
-                            city: venue.city,
-                            category: venue.category,
-                            url: venue.url
-                        },
-                        date: new Date().toISOString(),
-                        image: screenshotUrl,
-                        link: venue.url
-                    });
-                    log(`> Found info: ${ogTitle.substring(0, 15)}...`, 'success');
+                if (ogTitle && ogTitle !== 'No Title') {
+                    // FILTER GARBAGE
+                    const BAD_PATTERNS = [/Cloudflare/i, /Attention Required/i, /Forbidden/i, /Just a moment/i, /Access Denied/i, /403/];
+                    if (BAD_PATTERNS.some(p => p.test(ogTitle))) {
+                        log(`> Skipping garbage title: ${ogTitle}`, 'warn', progressPct);
+                    } else {
+                        newEvents.push({
+                            id: venue.id + '_' + Date.now(),
+                            title: (ogTitle || title).replace(' | Facebook', '').replace(/[\n\r]/g, ' ').substring(0, 80),
+                            venue: {
+                                name: venue.id.replace(/_/g, ' ').toUpperCase(),
+                                city: venue.city,
+                                category: venue.category,
+                                url: venue.url
+                            },
+                            date: new Date().toISOString(),
+                            image: screenshotUrl,
+                            link: venue.url
+                        });
+                        log(`> Found: ${ogTitle.substring(0, 15)}...`, 'success', progressPct);
+                    }
                 }
 
             } catch (err) {
