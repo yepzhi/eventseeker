@@ -32,6 +32,7 @@ function loadCache() {
             GLOBAL_CACHE.events = json.events || [];
             GLOBAL_CACHE.timestamp = json.timestamp;
             GLOBAL_CACHE.nextScan = json.nextScan;
+            GLOBAL_CACHE.weather = json.weather || []; // Load weather
             console.log(`[System] Loaded ${GLOBAL_CACHE.events.length} events from disk.`);
         }
     } catch (e) {
@@ -44,6 +45,7 @@ function saveCache() {
         cleanupOldEvents(); // Remove past events before saving
         fs.writeFileSync(CACHE_FILE, JSON.stringify({
             events: GLOBAL_CACHE.events,
+            weather: GLOBAL_CACHE.weather, // Save weather
             timestamp: GLOBAL_CACHE.timestamp,
             nextScan: GLOBAL_CACHE.nextScan
         }, null, 2));
@@ -512,6 +514,15 @@ app.listen(PORT, () => {
 
     // Auto-discover models on startup
     ingestKnowledgeBase(); // Check for local docs
+
+    // Quick Weather Refresh on Startup (Independent of Deep Research)
+    getWeather().then(w => {
+        if (w) {
+            GLOBAL_CACHE.weather = w;
+            saveCache();
+            console.log("[System] Initial Weather Cached.");
+        }
+    });
 
     const key = process.env.GEMINI_API_KEY;
     if (key) {
