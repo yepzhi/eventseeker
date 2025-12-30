@@ -25,6 +25,18 @@ app.use(express.json());
 // Serve static frontend files
 app.use(express.static('.'));
 
+// --- CACHE & STORAGE ---
+let GLOBAL_CACHE = {
+    events: [],
+    logs: [],
+    weather: [],
+    timestamp: null,
+    isScanning: false,
+    validModels: []
+};
+
+let CLIENTS = [];
+
 // --- PERSISTENCE HELPERS ---
 function loadCache() {
     try {
@@ -307,15 +319,7 @@ function processAndMergeEvents(newEvents, log) {
 }
 
 // Trigger Scrape Endpoint (SSE Streaming)
-// --- CACHE & STORAGE ---
-let GLOBAL_CACHE = {
-    events: [],
-    logs: [],
-    timestamp: null,
-    isScanning: false
-};
-
-let CLIENTS = [];
+// GLOBAL_CACHE and CLIENTS defined at top of file
 
 // --- SCHEDULED SCAN AT 5AM GMT-7 (= 12:00 UTC) ---
 function scheduleScanAt5AM_GMT7() {
