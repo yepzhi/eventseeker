@@ -259,6 +259,9 @@ function renderEvents(events, container) {
         const month = dateObj.toLocaleString('default', { month: 'short' });
         const day = dateObj.getDate();
 
+        // Ensure link is never null/undefined
+        const linkHref = ev.link ? ev.link : '#';
+
         row.innerHTML = `
             <div class="row-date">
                 <span class="row-month">${month}</span>
@@ -273,7 +276,7 @@ function renderEvents(events, container) {
                 <div class="row-venue">${ev.venue.name} • ${ev.venue.city}</div>
             </div>
 
-            <a href="${ev.link}" target="_blank" class="row-btn" title="View Details">
+            <a href="${linkHref}" target="_blank" class="row-btn" title="View Details">
                 ➜
             </a>
         `;
