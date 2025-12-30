@@ -1,6 +1,6 @@
 const translations = {
     en: {
-        subtitle: "Automatic scraping of top events in Sonora, AZ & BC.",
+        subtitle: "Automatic event search in H City!",
         labelWhere: "Where?",
         labelWhat: "What?",
         labelWhen: "When?",
@@ -21,7 +21,7 @@ const translations = {
         syncError: "Sync Error"
     },
     es: {
-        subtitle: "Búsqueda automática de eventos en Sonora, AZ y BC.",
+        subtitle: "Búsqueda automática de eventos en la H City!",
         labelWhere: "¿Dónde?",
         labelWhat: "¿Qué?",
         labelWhen: "¿Cuándo?",
@@ -43,10 +43,14 @@ const translations = {
     }
 };
 
-let currentLang = 'en';
+let currentLang = 'es'; // Default to Spanish
 
 document.addEventListener('DOMContentLoaded', () => {
     const langBtn = document.getElementById('langToggle');
+
+    // Apply Spanish texts on load
+    updateTexts();
+    updateButton();
 
     if (langBtn) {
         langBtn.addEventListener('click', (e) => {
