@@ -11,7 +11,7 @@ const PORT = process.env.PORT || 3000;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY || 'AIzaSyDDK0_8eokoXOOBF7EvgsiH2jKFoLMc7Wg';
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 // Stable default
-const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 const SCRAPE_INTERVAL = 1000 * 60 * 60 * 24; // 24 Hours
 const CACHE_FILE = 'events_db.json';
@@ -144,7 +144,7 @@ async function performDeepResearch() {
         // Use a model that supports tools (usually gemini-1.5-flash or pro)
         // Note: Using a specific model known to support tools
         const searchModel = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-2.0-flash-exp",
             tools: tools
         });
 
@@ -328,15 +328,15 @@ function scheduleScanAt5AM_GMT7() {
     console.log(`[System] Next scan scheduled at 5:00 AM GMT-7 (in ${hoursUntil} hours).`);
 
     setTimeout(async () => {
-        await runBackgroundScrape();
+        await performDeepResearch();
         // After scan, schedule next one for 24 hours later
-        setInterval(runBackgroundScrape, 1000 * 60 * 60 * 24);
+        setInterval(performDeepResearch, 1000 * 60 * 60 * 24);
     }, msUntil5AM);
 }
 
 // ONE-TIME: Run immediately since today's 5AM already passed
-console.log(`[System] Running ONE immediate scan (today's 5AM window missed).`);
-setTimeout(() => runBackgroundScrape(), 5000);
+// console.log(`[System] Running ONE immediate scan (today's 5AM window missed).`);
+// setTimeout(() => performDeepResearch(), 5000);
 
 // Then schedule future scans at 5AM GMT-7
 scheduleScanAt5AM_GMT7();
@@ -391,7 +391,7 @@ async function analyzeWithGemini(text, venueContext) {
     // --- FLASH EXCLUSIVE FOR QUOTA ---
     // User requested Flash primarily for quota (15 RPM vs 2 RPM for Pro/Experimental).
     let targetModels = [];
-    const flashModel = candidates.find(m => m.includes('flash')) || 'gemini-1.5-flash';
+    const flashModel = candidates.find(m => m.includes('2.5-flash') || m.includes('2.0-flash')) || 'gemini-2.5-flash';
     targetModels.push(flashModel);
 
     // Add pro as a single fallback
