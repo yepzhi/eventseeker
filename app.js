@@ -274,6 +274,7 @@ function renderEvents(events, container) {
                     ${ev.aiVerified ? '<span style="font-size:0.6em; background:#22c55e; color:black; padding:2px 4px; border-radius:4px; margin-left:6px;">AI Verified ✨</span>' : ''}
                 </div>
                 <div class="row-venue">
+                    <span style="color:#facc15; font-weight:700; margin-right:4px;">${ev.time || 'TBD'}</span> • 
                     ${ev.venue.name} ${ev.venue.name.toLowerCase() === ev.venue.city.toLowerCase() ? '' : '• ' + ev.venue.city}
                 </div>
             </div>
