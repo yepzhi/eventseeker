@@ -152,8 +152,8 @@ async function performDeepResearch() {
         });
 
         const prompt = `
-        Find all upcoming public events in ${RESEARCH_CITY} for the next 30 days.
-        Look for concerts, sports matches, cultural festivals, theater, family activities, and parties/nightlife.
+        Give a full list of parties, live music presentations at bars in Hermosillo Sonora the next 30 days.
+        Take your time, no hurry. Focus on "Hermosillo" and deep check all available sources.
         
         Return a valid JSON object with an "events" array.
         Each event must verify:
