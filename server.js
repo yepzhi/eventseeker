@@ -16,6 +16,8 @@ const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
 const SCRAPE_INTERVAL = 1000 * 60 * 60 * 24; // 24 Hours
 const CACHE_FILE = 'events_db.json';
+const KNOWLEDGE_BASE_FILE = 'knowledge_base_jan2026.txt';
+const RESEARCH_CITY = 'Hermosillo, Sonora';
 const fs = require('fs');
 
 app.use(cors());
@@ -460,13 +462,12 @@ async function analyzeWithGemini(text, venueContext) {
 
 // --- KNOWLEDGE BASE INGESTION ---
 async function ingestKnowledgeBase() {
-    const KB_FILE = 'Hermosillo Live Music and Parties.txt';
-    if (!fs.existsSync(KB_FILE)) return;
+    if (!fs.existsSync(KNOWLEDGE_BASE_FILE)) return;
 
-    console.log(`[System] Found Knowledge Base: ${KB_FILE}. Ingesting...`);
+    console.log(`[System] Found Knowledge Base: ${KNOWLEDGE_BASE_FILE}. Ingesting...`);
 
     try {
-        const text = fs.readFileSync(KB_FILE, 'utf-8');
+        const text = fs.readFileSync(KNOWLEDGE_BASE_FILE, 'utf-8');
         // Reuse analyzeWithGemini but with a specific context
         const events = await analyzeWithGemini(text, { city: 'Hermosillo', id: 'knowledge_base_doc' });
 
