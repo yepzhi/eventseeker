@@ -16,7 +16,7 @@ const INLINED_VENUES = [
 
 let venues = INLINED_VENUES;
 let allEvents = [];
-let currentDateRange = '3days';
+let currentDateRange = '30days';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 2. Setup Listeners
@@ -234,7 +234,8 @@ function checkDateRange(eventDateIso, range) {
         return diffDays >= 0 && diffDays <= 7;
     }
     if (range === '30days') {
-        return diffDays >= 0 && diffDays <= 30;
+        // Extended to 60 days to cover full next month view
+        return diffDays >= 0 && diffDays <= 60;
     }
     return true;
 }
