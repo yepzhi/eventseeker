@@ -81,6 +81,11 @@ function updateTexts() {
         document.getElementById('updateText').innerText = text;
     }
 
+    // Update Weather Widget if available
+    if (window.updateWeatherUI) {
+        window.updateWeatherUI();
+    }
+
     // Labels
     document.getElementById('lblWhere').innerText = t.labelWhere;
     document.getElementById('lblWhat').innerText = t.labelWhat;

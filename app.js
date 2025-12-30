@@ -145,6 +145,12 @@ async function filterEvents() {
                     }
                 }
 
+                // Handle Weather Data
+                if (data.weather && data.weather.length > 0) {
+                    lastWeatherData = data.weather;
+                    updateWeatherUI();
+                }
+
                 // Render Logic
                 const filtered = eventsToDisplay.filter(ev => checkDateRange(ev.date, currentDateRange));
                 renderEvents(filtered, grid);
@@ -155,20 +161,57 @@ async function filterEvents() {
         }
     };
 
+    // ... error handling ...
     evtSource.onerror = function (err) {
         console.error("EventSource failed:", err);
         evtSource.close();
-
-        // Update System Status to Error (stays red, no auto-retry)
         const statusEl = document.getElementById('systemStatus');
-        if (statusEl) {
-            statusEl.innerHTML = `
-                <span class="status-dot error"></span>
-                <span class="status-text">Error</span>
-            `;
-        }
+        if (statusEl) statusEl.innerHTML = `<span class="status-dot error"></span><span class="status-text">Error</span>`;
     };
 }
+
+// --- WEATHER LOGIC ---
+let lastWeatherData = null;
+
+function updateWeatherUI() {
+    const pill = document.getElementById('weatherPill');
+    const textEl = document.getElementById('weatherText');
+
+    if (!lastWeatherData || lastWeatherData.length === 0) return;
+
+    // Show pill
+    pill.style.display = 'inline-flex';
+
+    // Calculate 7-Day Min/Max (Centigrade)
+    // We assume data passed is next 7 days from backend
+    const next7 = lastWeatherData.slice(0, 7);
+    const allMins = next7.map(d => d.min);
+    const allMaxs = next7.map(d => d.max);
+
+    const minC = Math.min(...allMins);
+    const maxC = Math.max(...allMaxs);
+
+    // Determine Unit based on Lang
+    // Access global currentLang from translations.js
+    const isEnglish = (typeof currentLang !== 'undefined' && currentLang === 'en');
+
+    let displayMin = minC;
+    let displayMax = maxC;
+    let unit = '°C';
+    let label = 'Próx 7 Días';
+
+    if (isEnglish) {
+        // Convert to F
+        displayMin = Math.round((minC * 9 / 5) + 32);
+        displayMax = Math.round((maxC * 9 / 5) + 32);
+        unit = '°F';
+        label = 'Next 7 Days';
+    }
+
+    textEl.innerText = `${label}: ${displayMin}-${displayMax}${unit}`;
+}
+// Export for translations.js to update on toggle
+window.updateWeatherUI = updateWeatherUI;
 
 function checkDateRange(eventDateIso, range) {
     const eventDate = new Date(eventDateIso);

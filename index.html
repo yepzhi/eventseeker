@@ -30,7 +30,6 @@
 
             <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
                 <div id="statusBadge" class="update-info">
-                    <!-- Reverted class name to match old styles if needed, or stick to styles.css definitions -->
                     <div class="pulse-dot"></div>
                     <span id="updateText">Next scan: 5AM</span>
                 </div>
@@ -39,6 +38,12 @@
                 <div class="system-status" id="systemStatus">
                     <div class="status-dot live"></div>
                     <span class="status-text">Live</span>
+                </div>
+
+                <!-- NEW Encapsulated Weather Widget -->
+                <div id="weatherPill" class="update-info" style="display:none; cursor:default;">
+                    <span style="font-size:1.2em; margin-right:4px;">☀️</span>
+                    <span id="weatherText">Loading...</span>
                 </div>
             </div>
         </div>
