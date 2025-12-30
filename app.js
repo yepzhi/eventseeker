@@ -273,7 +273,9 @@ function renderEvents(events, container) {
                     ${ev.title} 
                     ${ev.aiVerified ? '<span style="font-size:0.6em; background:#22c55e; color:black; padding:2px 4px; border-radius:4px; margin-left:6px;">AI Verified ✨</span>' : ''}
                 </div>
-                <div class="row-venue">${ev.venue.name} • ${ev.venue.city}</div>
+                <div class="row-venue">
+                    ${ev.venue.name} ${ev.venue.name.toLowerCase() === ev.venue.city.toLowerCase() ? '' : '• ' + ev.venue.city}
+                </div>
             </div>
 
             <a href="${linkHref}" target="_blank" class="row-btn" title="View Details">

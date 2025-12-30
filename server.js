@@ -158,12 +158,12 @@ async function performDeepResearch() {
         - title: String (Spanish)
         - date: String (YYYY-MM-DD or "Upcoming")
         - time: String (e.g. "8:00 PM")
-        - location: String (Venue Name)
+        - location: String (Specific Venue Name, e.g. "Catedral", "Parque La Ruina", "Bar X". NEVER use "Hermosillo" or "Sonora" as location)
         - category: One of ["Deportes", "Cultura", "Familia", "Fiesta", "General"]
-        - description: String (Max 100 chars, in Spanish)
+        - description: String (Max 100 chars, in Spanish, mention venue if known)
         - link: Source URL if available
         
-        Focus on accuracy.
+        Focus on accuracy. If venue is unknown, use "Ubicación por definir".
         `;
 
         const result = await searchModel.generateContent(prompt);
@@ -283,7 +283,7 @@ function processAndMergeEvents(newEvents, log) {
                 date: evt.date,
                 time: evt.time || 'TBD',
                 venue: {
-                    name: evt.location || 'Hermosillo',
+                    name: (evt.location && evt.location.toLowerCase() !== 'hermosillo') ? evt.location : 'Ubicación por definir',
                     city: 'Hermosillo',
                     category: evt.category || 'General',
                     url: evt.link || ''
