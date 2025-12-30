@@ -109,7 +109,7 @@ async function filterEvents() {
     let eventsToDisplay = [];
 
     // 1. Try Fetching from Backend (STREAMING)
-    const evtSource = new EventSource(`${API_URL}/scrape?city=${city}&category=${Category}`);
+    const evtSource = new EventSource(`${API_URL}?city=${city}&category=${Category}`);
 
     evtSource.onmessage = function (event) {
         // Keep stream open for live updates
