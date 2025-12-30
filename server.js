@@ -87,39 +87,218 @@ loadCache();
 // });
 
 // --- CONFIGURATION ---
-const VENUES = [
-    // HERMOSILLO
-    { id: 'parque_la_ruina', city: 'Hermosillo', category: 'General', url: 'https://www.instagram.com/parquelaruinahmo/?hl=es' },
-    { id: 'gran_casona', city: 'Hermosillo', category: 'General', url: 'https://www.instagram.com/lagrancasonahmo/?hl=es' },
-    { id: 'hermosillo_gob', city: 'Hermosillo', category: 'Cultura', url: 'https://www.instagram.com/hermosillogob/' },
-    { id: 'hermochilo', city: 'Hermosillo', category: 'General', url: 'https://www.instagram.com/hermochilo.son/' },
-    { id: 'eventbrite_hmo', city: 'Hermosillo', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--sonora/hermosillo/' },
-    { id: 'guia_de_hoy_hmo', city: 'Hermosillo', category: 'General', url: 'https://guiadehoy.com/hermosillo/eventos' },
-    { id: 'cada_evento_son', city: 'Hermosillo', category: 'General', url: 'https://www.facebook.com/cadaeventoson/?locale=es_LA' },
-    { id: 'conciertos_hmo', city: 'Hermosillo', category: 'Conciertos', url: 'https://www.instagram.com/conciertoshermosillo/' },
-    { id: 'bandsintown_hmo', city: 'Hermosillo', category: 'Conciertos', url: 'https://www.bandsintown.com/es/c/hermosillo-mexico' },
-    { id: 'feverup_hmo', city: 'Hermosillo', category: 'General', url: 'https://feverup.com/es/hermosillo?srsltid=AfmBOorCm6uf0GE-QguGplb6K2wLHOcO8KpPj9pp0Dl8Dvqy7zc3K_w_ ' },
-    { id: 'noro_mx', city: 'Hermosillo', category: 'Conciertos', url: 'https://noro.mx/hermosillo/agenda-conciertos-en-hermosillo-para-2025/' },
+// --- DEEP RESEARCH CONFIG ---
+const RESEARCH_CITY = "Hermosillo, Sonora";
+const WEATHER_API = "https://api.open-meteo.com/v1/forecast?latitude=29.07&longitude=-110.95&daily=temperature_2m_max,temperature_2m_min&timezone=America%2FHermosillo";
 
-    // SONORA (GENERAL)
-    { id: 'eventbrite_sonora', city: 'Sonora', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--sonora/events/' },
-    { id: 'visit_sonora', city: 'Sonora', category: 'Turismo', url: 'https://www.visitsonora.mx/eventos.php' },
-    { id: 'zona_turistica_son', city: 'Sonora', category: 'Turismo', url: 'https://www.zonaturistica.com/eventos-en/sonora' },
+// --- CONFIGURATION ---
+// No hardcoded venues. We search dynamically.
 
-    // BAJA CALIFORNIA
-    { id: 'zona_turistica_bc', city: 'Baja California', category: 'Turismo', url: 'https://www.zonaturistica.com/eventos/baja-california' },
-    { id: 'eventbrite_bc', city: 'Baja California', category: 'General', url: 'https://www.eventbrite.com.mx/d/mexico--baja-california/events/' },
-    { id: 'feverup_tijuana_venue', city: 'Tijuana', category: 'Conciertos', url: 'https://feverup.com/es/tijuana/venue/baja-california-center?srsltid=AfmBOopo9urcEqNNNNQTvkxnTvWjJPPNg6Vv74UQx4m3uvWabZ9v497cY7' },
-    { id: 'rosarito_organizer', city: 'Rosarito', category: 'General', url: 'https://www.rosarito.org/eventos/' },
-    { id: 'tijuana_eventos_ig', city: 'Tijuana', category: 'General', url: 'https://www.instagram.com/tijuanaeventos/?hl=es' },
-    { id: 'tijuana_eventos_ensenada', city: 'Ensenada', category: 'General', url: 'https://tijuanaeventos.com/eventos-en-ensenada/' },
+// --- WEATHER HELPER ---
+async function getWeather() {
+    try {
+        const res = await fetch(WEATHER_API);
+        const data = await res.json();
+        // Return 7 days of forecast
+        if (data.daily) {
+            return data.daily.time.map((date, i) => ({
+                date,
+                max: Math.round(data.daily.temperature_2m_max[i]),
+                min: Math.round(data.daily.temperature_2m_min[i])
+            }));
+        }
+        return [];
+    } catch (e) {
+        console.error("[Weather] Failed to fetch:", e.message);
+        return [];
+    }
+}
 
-    // ARIZONA
-    { id: 'eventbrite_az', city: 'Arizona', category: 'General', url: 'https://www.eventbrite.com.mx/d/united-states--arizona/events/' },
-    { id: 'visit_arizona', city: 'Arizona', category: 'Turismo', url: 'https://www.visitarizona.com/events' },
-    { id: 'visit_phoenix', city: 'Phoenix', category: 'Turismo', url: 'https://www.visitphoenix.com/events/next-30-days/' },
-    { id: 'dtphx', city: 'Phoenix', category: 'General', url: 'https://dtphx.org/events/calendar' }
-];
+// --- DEEP RESEARCH ENGINE ---
+async function performDeepResearch() {
+    const log = (msg, type = 'info') => {
+        console.log(`[DeepResearch] ${msg}`);
+        const entry = { type: 'log', message: msg, level: type, time: Date.now() };
+        GLOBAL_CACHE.logs.push(entry);
+        CLIENTS.forEach(res => res.write(`data: ${JSON.stringify(entry)}\n\n`));
+    };
+
+    if (GLOBAL_CACHE.isScanning) return;
+    GLOBAL_CACHE.isScanning = true;
+    GLOBAL_CACHE.logs = [];
+
+    // 1. Fetch Weather
+    log("Fetching 7-day weather forecast...", 'info');
+    const weather = await getWeather();
+    GLOBAL_CACHE.weather = weather; // Store in cache
+
+    log(`Starting Deep Research for ${RESEARCH_CITY}...`, 'info');
+
+    let events = [];
+
+    // 2. Try Gemini Search Grounding (Official Tool)
+    try {
+        log("Attempting Gemini Search Grounding...", 'warn');
+        const tools = [{ googleSearchRetrieval: {} }];
+
+        // Use a model that supports tools (usually gemini-1.5-flash or pro)
+        // Note: Using a specific model known to support tools
+        const searchModel = genAI.getGenerativeModel({
+            model: "gemini-1.5-flash",
+            tools: tools
+        });
+
+        const prompt = `
+        Find all upcoming public events in ${RESEARCH_CITY} for the next 30 days.
+        Look for concerts, sports matches, cultural festivals, theater, family activities, and parties/nightlife.
+        
+        Return a valid JSON object with an "events" array.
+        Each event must verify:
+        - title: String (Spanish)
+        - date: String (YYYY-MM-DD or "Upcoming")
+        - time: String (e.g. "8:00 PM")
+        - location: String (Venue Name)
+        - category: One of ["Deportes", "Cultura", "Familia", "Fiesta", "General"]
+        - description: String (Max 100 chars, in Spanish)
+        - link: Source URL if available
+        
+        Focus on accuracy.
+        `;
+
+        const result = await searchModel.generateContent(prompt);
+        const response = await result.response;
+        // console.log(response.candidates[0].content); // Debug
+
+        const text = response.text();
+        const jsonBlock = text.replace(/```json/g, '').replace(/```/g, '').trim();
+        const parsed = JSON.parse(jsonBlock);
+
+        if (parsed.events && parsed.events.length > 0) {
+            events = parsed.events;
+            log(`Gemini Search found ${events.length} events directly!`, 'success');
+        } else {
+            throw new Error("Gemini returned empty list");
+        }
+
+    } catch (e) {
+        log(`Standard Search Grounding failed (${e.message}). Switching to Web Scrape Fallback...`, 'warn');
+        events = await scrapeGoogleFallback(log);
+    }
+
+    // 3. Process & Merge
+    let addedCount = 0;
+    if (events.length > 0) {
+        addedCount = processAndMergeEvents(events, log);
+        saveCache(); // Persist to disk
+
+        log(`Scan Complete. Found ${events.length} candidates. Added ${addedCount} new uniquely. Merged Total: ${GLOBAL_CACHE.events.length}.`, 'success', 100);
+        broadcast({
+            type: 'result',
+            events: GLOBAL_CACHE.events,
+            weather: GLOBAL_CACHE.weather, // Send Weather
+            timestamp: GLOBAL_CACHE.timestamp,
+            nextScan: GLOBAL_CACHE.nextScan
+        });
+    } else {
+        log(`Scan finished. No new events found.`, 'warn', 100);
+        GLOBAL_CACHE.nextScan = Date.now() + SCRAPE_INTERVAL;
+        saveCache(); // Even if no events, save the nextScan timestamp
+        broadcast({
+            type: 'result',
+            events: GLOBAL_CACHE.events,
+            weather: GLOBAL_CACHE.weather, // Send Weather
+            timestamp: GLOBAL_CACHE.timestamp,
+            nextScan: GLOBAL_CACHE.nextScan
+        });
+    }
+
+    GLOBAL_CACHE.isScanning = false;
+    GLOBAL_CACHE.nextScan = Date.now() + SCRAPE_INTERVAL;
+    saveCache();
+}
+
+// Fallback: Manually visit Google/Eventbrite Search with Chromium
+async function scrapeGoogleFallback(log) {
+    let foundEvents = [];
+    const browser = await chromium.launch({
+        headless: true,
+        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled']
+    });
+
+    try {
+        const page = await browser.newPage();
+
+        // Strategy: Go to a Google Search for "Eventos en Hermosillo"
+        const query = encodeURIComponent(`eventos en ${RESEARCH_CITY} proximos dias`);
+        const url = `https://www.google.com/search?q=${query}&ibp=htl;events`; // Event rich snippet view
+
+        log(`Browsing Google Events view...`, 'info');
+        await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
+
+        // Scroll to load more
+        await page.evaluate(async () => {
+            const container = document.querySelector('div[jsname="gE6ib"]'); // Common event container class (risky) or just body
+            // Just scroll body
+            for (let i = 0; i < 5; i++) {
+                window.scrollBy(0, 1000);
+                await new Promise(r => setTimeout(r, 1000));
+            }
+        });
+
+        // Get text content
+        const bodyText = await page.evaluate(() => document.body.innerText);
+
+        // Feed to Gemini (plain)
+        log(`Analyzing raw search data with Gemini...`, 'info');
+        const rawEvents = await analyzeWithGemini(bodyText, { city: RESEARCH_CITY, id: 'google_scrape' });
+        foundEvents = rawEvents;
+
+    } catch (e) {
+        log(`Fallback scrape failed: ${e.message}`, 'error');
+    } finally {
+        await browser.close();
+    }
+    return foundEvents;
+}
+
+function processAndMergeEvents(newEvents, log) {
+    let added = 0;
+    const existingIds = new Set(GLOBAL_CACHE.events.map(e => (e.title + e.date).toLowerCase()));
+
+    newEvents.forEach(evt => {
+        const key = (evt.title + evt.date).toLowerCase();
+        // Validate date
+        if (!evt.date || evt.date === 'Upcoming') { /* Allow */ }
+        else {
+            const d = new Date(evt.date);
+            if (isNaN(d.getTime())) return;
+        }
+
+        if (!existingIds.has(key)) {
+            // Standardize structure
+            GLOBAL_CACHE.events.push({
+                id: 'gen_' + Date.now() + Math.random(),
+                title: evt.title,
+                date: evt.date,
+                time: evt.time || 'TBD',
+                venue: {
+                    name: evt.location || 'Hermosillo',
+                    city: 'Hermosillo',
+                    category: evt.category || 'General',
+                    url: evt.link || ''
+                },
+                description: evt.description,
+                link: evt.link || '',
+                aiVerified: true,
+                tags: [evt.category || 'General']
+            });
+            added++;
+        }
+    });
+
+    GLOBAL_CACHE.timestamp = new Date().toISOString();
+    log(`Deep Research Complete. Added ${added} new events. Total: ${GLOBAL_CACHE.events.length}`, 'success');
+}
 
 // Trigger Scrape Endpoint (SSE Streaming)
 // --- CACHE & STORAGE ---
@@ -201,7 +380,7 @@ async function analyzeWithGemini(text, venueContext) {
     Extract ALL upcoming events you find on the page.
     
     Text Snippet:
-    ${text.substring(0, 15000)}
+    ${text.substring(0, 50000)}
     `;
 
     // List of candidates 
@@ -259,171 +438,30 @@ async function analyzeWithGemini(text, venueContext) {
     return [];
 }
 
-// --- BACKGROUND SCRAPER ---
-async function runBackgroundScrape() {
-    if (GLOBAL_CACHE.isScanning) return;
-    GLOBAL_CACHE.isScanning = true;
-    GLOBAL_CACHE.logs = []; // Clear logs for new run
 
-    const broadcast = (data) => {
-        CLIENTS.forEach(res => res.write(`data: ${JSON.stringify(data)}\n\n`));
-    };
 
-    const log = (msg, type = 'info', progress = null) => {
-        console.log(`[Scraper] ${msg}`);
-        const logEntry = { type: 'log', message: msg, level: type, time: Date.now() };
-        if (progress !== null) logEntry.progress = progress;
-        GLOBAL_CACHE.logs.push(logEntry);
-        broadcast(logEntry);
-    };
+// --- KNOWLEDGE BASE INGESTION ---
+async function ingestKnowledgeBase() {
+    const KB_FILE = 'Hermosillo Live Music and Parties.txt';
+    if (!fs.existsSync(KB_FILE)) return;
 
-    log('Starting AI-Powered Scan...', 'info', 0);
+    console.log(`[System] Found Knowledge Base: ${KB_FILE}. Ingesting...`);
 
     try {
-        const browser = await chromium.launch({
-            headless: true,
-            args: [
-                '--no-sandbox',
-                '--disable-setuid-sandbox',
-                '--disable-gpu',
-                '--disable-dev-shm-usage', // Critical for Docker/HF Spaces
-                '--dns-result-order=ipv4first', // Fixes Node 17+ DNS issues
-                '--disable-blink-features=AutomationControlled' // Evasion
-            ]
-        });
+        const text = fs.readFileSync(KB_FILE, 'utf-8');
+        // Reuse analyzeWithGemini but with a specific context
+        const events = await analyzeWithGemini(text, { city: 'Hermosillo', id: 'knowledge_base_doc' });
 
-        const context = await browser.newContext({
-            userAgent: 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
-            viewport: { width: 1280, height: 800 }
-        });
+        if (events.length > 0) {
+            console.log(`[System] Extracted ${events.length} events from Knowledge Base.`);
+            processAndMergeEvents(events, (msg) => console.log(`[Ingest] ${msg}`));
+            saveCache();
 
-        const targets = VENUES;
-        const newEvents = [];
-
-        for (const [index, venue] of targets.entries()) {
-            let page = null;
-            const progressPct = Math.round(((index + 1) / targets.length) * 100);
-
-            try {
-                log(`[${index + 1}/${targets.length}] scanning ${venue.id}...`, 'info', progressPct);
-
-                page = await context.newPage();
-
-                // Block heavy resources
-                await page.route('**/*', (route) => {
-                    const type = route.request().resourceType();
-                    if (['font', 'stylesheet', 'media', 'image'].includes(type)) route.abort();
-                    else route.continue();
-                });
-
-                let navSuccess = false;
-                try {
-                    // Deep Scan: Wait for networkidle + 2s settle
-                    await page.goto(venue.url, { waitUntil: 'networkidle', timeout: 25000 });
-
-                    // Auto-Scroll to trigger lazy loading (crucial for social media/eventbrite)
-                    log(`> Auto-scrolling for lazy content...`, 'info', progressPct);
-                    await page.evaluate(async () => {
-                        await new Promise((resolve) => {
-                            let totalHeight = 0;
-                            let distance = 300;
-                            let timer = setInterval(() => {
-                                let scrollHeight = document.body.scrollHeight;
-                                window.scrollBy(0, distance);
-                                totalHeight += distance;
-                                if (totalHeight >= scrollHeight || totalHeight > 3000) {
-                                    clearInterval(timer);
-                                    resolve();
-                                }
-                            }, 150);
-                        });
-                    });
-                    await new Promise(r => setTimeout(r, 2000)); // Final settle
-                    navSuccess = true;
-                } catch (e) {
-                    log(`Nav Error ${venue.id}: ${e.message}`, 'warn', progressPct);
-                    // Even if timeout, we might have content loaded? Try anyway.
-                }
-
-                if (navSuccess) {
-                    // 1. Get Text for AI (Better extraction strategy)
-                    // We prioritize H1, H2, Article tags, then fallback to body
-                    const bodyText = await page.evaluate(() => {
-                        const important = Array.from(document.querySelectorAll('h1, h2, h3, article, .event-card, .post')).map(e => e.innerText).join('\n');
-                        return important.length > 200 ? important : document.body.innerText;
-                    });
-
-                    // 2. Call Gemini
-                    log(`> Analyzing...`, 'info', progressPct);
-                    const aiEvents = await analyzeWithGemini(bodyText, venue);
-
-                    if (aiEvents && aiEvents.length > 0) {
-                        aiEvents.forEach(evt => {
-                            newEvents.push({
-                                id: venue.id + '_' + Date.now() + Math.random(),
-                                title: evt.title,
-                                venue: {
-                                    name: venue.id.replace(/_/g, ' ').toUpperCase(),
-                                    city: venue.city,
-                                    category: venue.category,
-                                    url: venue.url
-                                },
-                                date: evt.date === 'Upcoming' ? new Date().toISOString() : evt.date,
-                                image: '',
-                                link: venue.url,
-                                aiVerified: true,
-                                description: evt.description
-                            });
-                        });
-                        log(`> AI Found: ${aiEvents.length} events!`, 'success', progressPct);
-                    } else {
-                        log(`> No specific events extracted.`, 'warn', progressPct);
-                    }
-                }
-
-            } catch (err) {
-                log(`Failed ${venue.id}: ${err.message}`, 'error', progressPct);
-            } finally {
-                if (page) await page.close().catch(() => { });
-                // Rate Limiting: 10s delay between sites to strictly stay under 15 RPM
-                await new Promise(r => setTimeout(r, 10000));
-            }
+            // Rename to avoid re-ingestion
+            fs.renameSync(KB_FILE, KB_FILE + '.processed');
         }
-
-        await browser.close();
-
-        // Update Cache
-        if (newEvents.length > 0) {
-            // MERGE LOGIC (Prevent overwriting good data with partial scans)
-            let addedCount = 0;
-            const existingIds = new Set(GLOBAL_CACHE.events.map(e => (e.title + e.date).toLowerCase()));
-
-            newEvents.forEach(evt => {
-                const key = (evt.title + evt.date).toLowerCase();
-                if (!existingIds.has(key)) {
-                    GLOBAL_CACHE.events.push(evt);
-                    addedCount++;
-                }
-            });
-
-            GLOBAL_CACHE.timestamp = new Date().toISOString();
-            GLOBAL_CACHE.nextScan = Date.now() + SCRAPE_INTERVAL;
-
-            saveCache(); // Persist to disk
-
-            log(`Scan Complete. Found ${newEvents.length} candidates. Added ${addedCount} new uniquely. Merged Total: ${GLOBAL_CACHE.events.length}.`, 'success', 100);
-            broadcast({ type: 'result', events: GLOBAL_CACHE.events, timestamp: GLOBAL_CACHE.timestamp, nextScan: GLOBAL_CACHE.nextScan });
-        } else {
-            log(`Scan finished. No new events found.`, 'warn', 100);
-            GLOBAL_CACHE.nextScan = Date.now() + SCRAPE_INTERVAL;
-            saveCache(); // Even if no events, save the nextScan timestamp
-            broadcast({ type: 'result', events: GLOBAL_CACHE.events, timestamp: GLOBAL_CACHE.timestamp, nextScan: GLOBAL_CACHE.nextScan });
-        }
-
     } catch (e) {
-        log(`CRITICAL ERROR: ${e.message}`, 'error');
-    } finally {
-        GLOBAL_CACHE.isScanning = false;
+        console.error(`[System] Failed to ingest KB: ${e.message}`);
     }
 }
 
@@ -472,6 +510,8 @@ app.listen(PORT, () => {
     console.log(`[System] Version 2.3 - Auto-Discovering Models...`);
 
     // Auto-discover models on startup
+    ingestKnowledgeBase(); // Check for local docs
+
     const key = process.env.GEMINI_API_KEY;
     if (key) {
         fetch(`https://generativelanguage.googleapis.com/v1beta/models?key=${key}`)
