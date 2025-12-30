@@ -1,364 +1,400 @@
 {
-    "timestamp": "2025-12-29T19:30:00.000Z",
-    "nextScan": 1767182400000,
-    "weather": [],
-    "events": [
-        {
-            "id": "man_01",
-            "title": "Misa de Año Nuevo (Solemnidad)",
-            "date": "2026-01-01",
-            "time": "10:00 AM",
-            "venue": {
-                "name": "Catedral Metropolitana",
-                "city": "Hermosillo",
-                "category": "Cultura",
-                "url": ""
-            },
-            "description": "Tradicional misa de inicio de año en el corazón de la ciudad.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Cultura",
-                "Familia"
-            ]
-        },
-        {
-            "id": "man_02",
-            "title": "Gran Baile de Recalentado",
-            "date": "2026-01-03",
-            "time": "8:00 PM",
-            "venue": {
-                "name": "Expo Forum",
-                "city": "Hermosillo",
-                "category": "Fiesta",
-                "url": ""
-            },
-            "description": "El baile tradicional para seguir la fiesta. Los Tiranos del Norte y más.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Fiesta",
-                "Musica"
-            ]
-        },
-        {
-            "id": "man_03",
-            "title": "Rosca de Reyes Gigante",
-            "date": "2026-01-07",
-            "time": "5:00 PM",
-            "venue": {
-                "name": "Plaza Bicentenario",
-                "city": "Hermosillo",
-                "category": "Familia",
-                "url": ""
-            },
-            "description": "Evento cívico tradicional con la rosca de 600 metros.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Familia",
-                "Cultura"
-            ]
-        },
-        {
-            "id": "man_04",
-            "title": "Viernes de Jazz: Homenaje a Mac Miller",
-            "date": "2026-01-09",
-            "time": "9:30 PM",
-            "venue": {
-                "name": "La Gloriosa Stage Bar",
-                "city": "Hermosillo",
-                "category": "Cultura",
-                "url": ""
-            },
-            "description": "Solaría Jazz Collective presenta un tributo sofisticado. Cover $150.",
-            "link": "https://www.instagram.com/lagloriosastagebar",
-            "aiVerified": true,
-            "tags": [
-                "Cultura",
-                "Fiesta"
-            ]
-        },
-        {
-            "id": "man_05",
-            "title": "Son of Son (Electronic Night)",
-            "date": "2026-01-09",
-            "time": "10:00 PM",
-            "venue": {
-                "name": "Venue 867",
-                "city": "Hermosillo",
-                "category": "Fiesta",
-                "url": ""
-            },
-            "description": "Evento underground de House y Techno. Colaboración con Bar Americas.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Fiesta"
-            ]
-        },
-        {
-            "id": "man_06",
-            "title": "Fiesta Retro con DJ Gorila",
-            "date": "2026-01-10",
-            "time": "8:00 PM",
-            "venue": {
-                "name": "London Pub",
-                "city": "Hermosillo",
-                "category": "Fiesta",
-                "url": ""
-            },
-            "description": "Noche de hits de los 80s y 90s para Gen X y Millennials.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Fiesta"
-            ]
-        },
-        {
-            "id": "man_07",
-            "title": "MasterClass: Ilan Bar-Lavi",
-            "date": "2026-01-15",
-            "time": "6:30 PM",
-            "venue": {
-                "name": "La Gloriosa Stage Bar",
-                "city": "Hermosillo",
-                "category": "Cultura",
-                "url": ""
-            },
-            "description": "Clase magistral de guitarra y música para creativos locales.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Cultura",
-                "Educacion"
-            ]
-        },
-        {
-            "id": "man_08",
-            "title": "Concierto: Ilan Bar-Lavi Trio",
-            "date": "2026-01-16",
-            "time": "9:00 PM",
-            "venue": {
-                "name": "La Gloriosa Stage Bar",
-                "city": "Hermosillo",
-                "category": "Cultura",
-                "url": ""
-            },
-            "description": "Presentación en vivo del virtuoso guitarrista.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Cultura"
-            ]
-        },
-        {
-            "id": "man_09",
-            "title": "4to Festival del Globo",
-            "date": "2026-01-16",
-            "time": "4:00 PM",
-            "venue": {
-                "name": "Expogan Sonora",
-                "city": "Hermosillo",
-                "category": "Familia",
-                "url": ""
-            },
-            "description": "Globos aerostáticos, gastronomía y espectáculo familiar.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Familia",
-                "AireLibre"
-            ]
-        },
-        {
-            "id": "man_10",
-            "title": "Inicio Talleres Artísticos",
-            "date": "2026-01-20",
-            "time": "9:00 AM",
-            "venue": {
-                "name": "Casa de la Cultura",
-                "city": "Hermosillo",
-                "category": "Cultura",
-                "url": ""
-            },
-            "description": "Comienzo de cursos de fotografía, danza y literatura.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Cultura",
-                "Educacion"
-            ]
-        },
-        {
-            "id": "man_11",
-            "title": "Teatro: El Huésped",
-            "date": "2026-01-21",
-            "time": "8:00 PM",
-            "venue": {
-                "name": "El Mentidero",
-                "city": "Hermosillo",
-                "category": "Cultura",
-                "url": ""
-            },
-            "description": "Obra de terror psicológico. Única función.",
-            "link": "https://mentidero.mx",
-            "aiVerified": true,
-            "tags": [
-                "Cultura",
-                "Teatro"
-            ]
-        },
-        {
-            "id": "man_12",
-            "title": "Candlelight: Tributo a Coldplay",
-            "date": "2026-01-24",
-            "time": "7:00 PM",
-            "venue": {
-                "name": "Grand Agave",
-                "city": "Hermosillo",
-                "category": "Cultura",
-                "url": ""
-            },
-            "description": "Experiencia musical a la luz de las velas. Ambiente premium.",
-            "link": "https://feverup.com",
-            "aiVerified": true,
-            "tags": [
-                "Cultura",
-                "Concierto"
-            ]
-        },
-        {
-            "id": "man_13",
-            "title": "Ram Sagan Live",
-            "date": "2026-01-24",
-            "time": "9:00 PM",
-            "venue": {
-                "name": "Alfredos Bar",
-                "city": "Hermosillo",
-                "category": "Fiesta",
-                "url": ""
-            },
-            "description": "Rock alternativo en vivo para la contracultura.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Fiesta",
-                "Rock"
-            ]
-        },
-        {
-            "id": "man_14",
-            "title": "Teatro: Modo Avión",
-            "date": "2026-01-24",
-            "time": "7:30 PM",
-            "venue": {
-                "name": "El Mentidero",
-                "city": "Hermosillo",
-                "category": "Cultura",
-                "url": ""
-            },
-            "description": "Comedia farsica para desconectar.",
-            "link": "https://mentidero.mx",
-            "aiVerified": true,
-            "tags": [
-                "Cultura",
-                "Teatro"
-            ]
-        },
-        {
-            "id": "man_15",
-            "title": "Teatro: Nuestra Última Cena",
-            "date": "2026-01-27",
-            "time": "8:00 PM",
-            "venue": {
-                "name": "El Mentidero",
-                "city": "Hermosillo",
-                "category": "Cultura",
-                "url": ""
-            },
-            "description": "Terror a la carta en martes.",
-            "link": "https://mentidero.mx",
-            "aiVerified": true,
-            "tags": [
-                "Cultura",
-                "Teatro"
-            ]
-        },
-        {
-            "id": "man_16",
-            "title": "Gira en Kasas: Javier Blake",
-            "date": "2026-01-29",
-            "time": "8:00 PM",
-            "venue": {
-                "name": "Ubicación Secreta (Casa Madrid)",
-                "city": "Hermosillo",
-                "category": "Cultura",
-                "url": ""
-            },
-            "description": "Concierto acústico íntimo. Ubicación revelada a asistentes.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Cultura",
-                "Concierto"
-            ]
-        },
-        {
-            "id": "man_17",
-            "title": "Emi Vada (Audio Latino)",
-            "date": "2026-01-30",
-            "time": "9:30 PM",
-            "venue": {
-                "name": "La Gloriosa Stage Bar",
-                "city": "Hermosillo",
-                "category": "Fiesta",
-                "url": ""
-            },
-            "description": "Pop latino y ambiente social.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Fiesta"
-            ]
-        },
-        {
-            "id": "man_18",
-            "title": "Teatro: ¡Laa Paca!",
-            "date": "2026-01-30",
-            "time": "8:30 PM",
-            "venue": {
-                "name": "El Mentidero",
-                "city": "Hermosillo",
-                "category": "Cultura",
-                "url": ""
-            },
-            "description": "Comedia negra independiente.",
-            "link": "https://mentidero.mx",
-            "aiVerified": true,
-            "tags": [
-                "Cultura",
-                "Teatro"
-            ]
-        },
-        {
-            "id": "man_19",
-            "title": "Edición Especial en Concierto",
-            "date": "2026-01-31",
-            "time": "8:00 PM",
-            "venue": {
-                "name": "Parque La Ruina",
-                "city": "Hermosillo",
-                "category": "Fiesta",
-                "url": ""
-            },
-            "description": "El gran cierre del mes con música norteña y ambiente premium.",
-            "link": "",
-            "aiVerified": true,
-            "tags": [
-                "Fiesta",
-                "Concierto"
-            ]
-        }
-    ]
+  "timestamp": "2025-12-29T19:30:00.000Z",
+  "nextScan": 1767182400000,
+  "weather": [
+    {
+      "date": "2025-12-29",
+      "max": 26.8,
+      "min": 13
+    },
+    {
+      "date": "2025-12-30",
+      "max": 32,
+      "min": 15
+    },
+    {
+      "date": "2025-12-31",
+      "max": 25.2,
+      "min": 17.1
+    },
+    {
+      "date": "2026-01-01",
+      "max": 25.5,
+      "min": 16.6
+    },
+    {
+      "date": "2026-01-02",
+      "max": 25.2,
+      "min": 17.3
+    },
+    {
+      "date": "2026-01-03",
+      "max": 24.4,
+      "min": 16.7
+    },
+    {
+      "date": "2026-01-04",
+      "max": 24.8,
+      "min": 15.8
+    }
+  ],
+  "events": [
+    {
+      "id": "man_01",
+      "title": "Misa de Año Nuevo (Solemnidad)",
+      "date": "2026-01-01",
+      "time": "10:00 AM",
+      "venue": {
+        "name": "Catedral Metropolitana",
+        "city": "Hermosillo",
+        "category": "Cultura",
+        "url": ""
+      },
+      "description": "Tradicional misa de inicio de año en el corazón de la ciudad.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Cultura",
+        "Familia"
+      ]
+    },
+    {
+      "id": "man_02",
+      "title": "Gran Baile de Recalentado",
+      "date": "2026-01-03",
+      "time": "8:00 PM",
+      "venue": {
+        "name": "Expo Forum",
+        "city": "Hermosillo",
+        "category": "Fiesta",
+        "url": ""
+      },
+      "description": "El baile tradicional para seguir la fiesta. Los Tiranos del Norte y más.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Fiesta",
+        "Musica"
+      ]
+    },
+    {
+      "id": "man_03",
+      "title": "Rosca de Reyes Gigante",
+      "date": "2026-01-07",
+      "time": "5:00 PM",
+      "venue": {
+        "name": "Plaza Bicentenario",
+        "city": "Hermosillo",
+        "category": "Familia",
+        "url": ""
+      },
+      "description": "Evento cívico tradicional con la rosca de 600 metros.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Familia",
+        "Cultura"
+      ]
+    },
+    {
+      "id": "man_04",
+      "title": "Viernes de Jazz: Homenaje a Mac Miller",
+      "date": "2026-01-09",
+      "time": "9:30 PM",
+      "venue": {
+        "name": "La Gloriosa Stage Bar",
+        "city": "Hermosillo",
+        "category": "Cultura",
+        "url": ""
+      },
+      "description": "Solaría Jazz Collective presenta un tributo sofisticado. Cover $150.",
+      "link": "https://www.instagram.com/lagloriosastagebar",
+      "aiVerified": true,
+      "tags": [
+        "Cultura",
+        "Fiesta"
+      ]
+    },
+    {
+      "id": "man_05",
+      "title": "Son of Son (Electronic Night)",
+      "date": "2026-01-09",
+      "time": "10:00 PM",
+      "venue": {
+        "name": "Venue 867",
+        "city": "Hermosillo",
+        "category": "Fiesta",
+        "url": ""
+      },
+      "description": "Evento underground de House y Techno. Colaboración con Bar Americas.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Fiesta"
+      ]
+    },
+    {
+      "id": "man_06",
+      "title": "Fiesta Retro con DJ Gorila",
+      "date": "2026-01-10",
+      "time": "8:00 PM",
+      "venue": {
+        "name": "London Pub",
+        "city": "Hermosillo",
+        "category": "Fiesta",
+        "url": ""
+      },
+      "description": "Noche de hits de los 80s y 90s para Gen X y Millennials.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Fiesta"
+      ]
+    },
+    {
+      "id": "man_07",
+      "title": "MasterClass: Ilan Bar-Lavi",
+      "date": "2026-01-15",
+      "time": "6:30 PM",
+      "venue": {
+        "name": "La Gloriosa Stage Bar",
+        "city": "Hermosillo",
+        "category": "Cultura",
+        "url": ""
+      },
+      "description": "Clase magistral de guitarra y música para creativos locales.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Cultura",
+        "Educacion"
+      ]
+    },
+    {
+      "id": "man_08",
+      "title": "Concierto: Ilan Bar-Lavi Trio",
+      "date": "2026-01-16",
+      "time": "9:00 PM",
+      "venue": {
+        "name": "La Gloriosa Stage Bar",
+        "city": "Hermosillo",
+        "category": "Cultura",
+        "url": ""
+      },
+      "description": "Presentación en vivo del virtuoso guitarrista.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Cultura"
+      ]
+    },
+    {
+      "id": "man_09",
+      "title": "4to Festival del Globo",
+      "date": "2026-01-16",
+      "time": "4:00 PM",
+      "venue": {
+        "name": "Expogan Sonora",
+        "city": "Hermosillo",
+        "category": "Familia",
+        "url": ""
+      },
+      "description": "Globos aerostáticos, gastronomía y espectáculo familiar.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Familia",
+        "AireLibre"
+      ]
+    },
+    {
+      "id": "man_10",
+      "title": "Inicio Talleres Artísticos",
+      "date": "2026-01-20",
+      "time": "9:00 AM",
+      "venue": {
+        "name": "Casa de la Cultura",
+        "city": "Hermosillo",
+        "category": "Cultura",
+        "url": ""
+      },
+      "description": "Comienzo de cursos de fotografía, danza y literatura.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Cultura",
+        "Educacion"
+      ]
+    },
+    {
+      "id": "man_11",
+      "title": "Teatro: El Huésped",
+      "date": "2026-01-21",
+      "time": "8:00 PM",
+      "venue": {
+        "name": "El Mentidero",
+        "city": "Hermosillo",
+        "category": "Cultura",
+        "url": ""
+      },
+      "description": "Obra de terror psicológico. Única función.",
+      "link": "https://mentidero.mx",
+      "aiVerified": true,
+      "tags": [
+        "Cultura",
+        "Teatro"
+      ]
+    },
+    {
+      "id": "man_12",
+      "title": "Candlelight: Tributo a Coldplay",
+      "date": "2026-01-24",
+      "time": "7:00 PM",
+      "venue": {
+        "name": "Grand Agave",
+        "city": "Hermosillo",
+        "category": "Cultura",
+        "url": ""
+      },
+      "description": "Experiencia musical a la luz de las velas. Ambiente premium.",
+      "link": "https://feverup.com",
+      "aiVerified": true,
+      "tags": [
+        "Cultura",
+        "Concierto"
+      ]
+    },
+    {
+      "id": "man_13",
+      "title": "Ram Sagan Live",
+      "date": "2026-01-24",
+      "time": "9:00 PM",
+      "venue": {
+        "name": "Alfredos Bar",
+        "city": "Hermosillo",
+        "category": "Fiesta",
+        "url": ""
+      },
+      "description": "Rock alternativo en vivo para la contracultura.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Fiesta",
+        "Rock"
+      ]
+    },
+    {
+      "id": "man_14",
+      "title": "Teatro: Modo Avión",
+      "date": "2026-01-24",
+      "time": "7:30 PM",
+      "venue": {
+        "name": "El Mentidero",
+        "city": "Hermosillo",
+        "category": "Cultura",
+        "url": ""
+      },
+      "description": "Comedia farsica para desconectar.",
+      "link": "https://mentidero.mx",
+      "aiVerified": true,
+      "tags": [
+        "Cultura",
+        "Teatro"
+      ]
+    },
+    {
+      "id": "man_15",
+      "title": "Teatro: Nuestra Última Cena",
+      "date": "2026-01-27",
+      "time": "8:00 PM",
+      "venue": {
+        "name": "El Mentidero",
+        "city": "Hermosillo",
+        "category": "Cultura",
+        "url": ""
+      },
+      "description": "Terror a la carta en martes.",
+      "link": "https://mentidero.mx",
+      "aiVerified": true,
+      "tags": [
+        "Cultura",
+        "Teatro"
+      ]
+    },
+    {
+      "id": "man_16",
+      "title": "Gira en Kasas: Javier Blake",
+      "date": "2026-01-29",
+      "time": "8:00 PM",
+      "venue": {
+        "name": "Ubicación Secreta (Casa Madrid)",
+        "city": "Hermosillo",
+        "category": "Cultura",
+        "url": ""
+      },
+      "description": "Concierto acústico íntimo. Ubicación revelada a asistentes.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Cultura",
+        "Concierto"
+      ]
+    },
+    {
+      "id": "man_17",
+      "title": "Emi Vada (Audio Latino)",
+      "date": "2026-01-30",
+      "time": "9:30 PM",
+      "venue": {
+        "name": "La Gloriosa Stage Bar",
+        "city": "Hermosillo",
+        "category": "Fiesta",
+        "url": ""
+      },
+      "description": "Pop latino y ambiente social.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Fiesta"
+      ]
+    },
+    {
+      "id": "man_18",
+      "title": "Teatro: ¡Laa Paca!",
+      "date": "2026-01-30",
+      "time": "8:30 PM",
+      "venue": {
+        "name": "El Mentidero",
+        "city": "Hermosillo",
+        "category": "Cultura",
+        "url": ""
+      },
+      "description": "Comedia negra independiente.",
+      "link": "https://mentidero.mx",
+      "aiVerified": true,
+      "tags": [
+        "Cultura",
+        "Teatro"
+      ]
+    },
+    {
+      "id": "man_19",
+      "title": "Edición Especial en Concierto",
+      "date": "2026-01-31",
+      "time": "8:00 PM",
+      "venue": {
+        "name": "Parque La Ruina",
+        "city": "Hermosillo",
+        "category": "Fiesta",
+        "url": ""
+      },
+      "description": "El gran cierre del mes con música norteña y ambiente premium.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Fiesta",
+        "Concierto"
+      ]
+    }
+  ]
 }
