@@ -393,12 +393,27 @@ async function analyzeWithGemini(text, venueContext) {
 
     // --- FLASH EXCLUSIVE FOR QUOTA ---
     // User requested Flash primarily for quota (15 RPM vs 2 RPM for Pro/Experimental).
+    // --- FLASH EXCLUSIVE FOR QUOTA ---
+    // User requested Flash primarily for quota (15 RPM vs 2 RPM for Pro/Experimental).
     let targetModels = [];
-    const flashModel = candidates.find(m => m.includes('2.5-flash') || m.includes('2.0-flash')) || 'gemini-2.5-flash';
+    // Prioritize Lite / Free-Tier Friendly models
+    const preferredOrder = ['gemini-2.0-flash-lite-preview-02-05', 'gemini-flash-lite-latest', 'gemini-2.5-flash', 'gemini-1.5-flash'];
+
+    // Find first available from preferred list
+    let flashModel = 'gemini-2.5-flash'; // Default fallback
+    if (GLOBAL_CACHE.validModels && GLOBAL_CACHE.validModels.length > 0) {
+        for (const pref of preferredOrder) {
+            const found = GLOBAL_CACHE.validModels.find(m => m.includes(pref));
+            if (found) {
+                flashModel = found;
+                break;
+            }
+        }
+    }
     targetModels.push(flashModel);
 
-    // Add pro as a single fallback
-    if (candidates.includes('gemini-pro')) targetModels.push('gemini-pro');
+    // Fallback to Pro only if desperate
+    // targetModels.push('gemini-pro'); // Removed to avoid 404/Quota spam
 
     console.log(`[AI] Attempting extraction with: ${targetModels.join(', ')}`);
 
@@ -502,7 +517,7 @@ app.get('/scrape', (req, res) => {
     if (category && category !== 'all') filtered = filtered.filter(e => e.venue.category === category);
 
     // Send Result
-    res.write(`data: ${JSON.stringify({ type: 'result', events: filtered, timestamp: GLOBAL_CACHE.timestamp })}\n\n`);
+    res.write(`data: ${JSON.stringify({ type: 'result', events: filtered, weather: GLOBAL_CACHE.weather, timestamp: GLOBAL_CACHE.timestamp })}\n\n`);
 
     // res.write('event: close\ndata: close\n\n'); // Removed as clients are managed by CLIENTS array
     // res.end(); // Removed as clients are managed by CLIENTS array
