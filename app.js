@@ -90,7 +90,8 @@ window.updateServerStatus = updateServerStatus;
 
 // --- FILTER & API LOGIC ---
 
-const API_URL = 'https://yepzhi-eventseeker.hf.space'; // Backend on Hugging Face
+// Use relative path since frontend is served by the same Node server
+const API_URL = '/scrape';
 
 async function filterEvents() {
     const citySelect = document.getElementById('citySelect');
