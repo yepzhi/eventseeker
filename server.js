@@ -93,7 +93,8 @@ loadCache();
 
 // --- CONFIGURATION ---
 // --- DEEP RESEARCH CONFIG ---
-const RESEARCH_CITY = "Hermosillo, Sonora";
+// RESEARCH_CITY defined at top
+
 const WEATHER_API = "https://api.open-meteo.com/v1/forecast?latitude=29.07&longitude=-110.95&daily=temperature_2m_max,temperature_2m_min&timezone=America%2FHermosillo";
 
 // --- CONFIGURATION ---
@@ -477,7 +478,8 @@ async function ingestKnowledgeBase() {
             saveCache();
 
             // Rename to avoid re-ingestion
-            fs.renameSync(KB_FILE, KB_FILE + '.processed');
+            // Rename to avoid re-ingestion
+            fs.renameSync(KNOWLEDGE_BASE_FILE, KNOWLEDGE_BASE_FILE + '.processed');
         }
     } catch (e) {
         console.error(`[System] Failed to ingest KB: ${e.message}`);
