@@ -1,161 +1,153 @@
 // EventSeeker Frontend Logic
+// Simulates the "Headless Browser" results for the demo
+
+// INLINED DATA TO AVOID FILE:// CORS ISSUES
+const INLINED_VENUES = [
+    {
+        "id": "parque_la_ruina",
+        "name": "Parque La Ruina",
+        "city": "Hermosillo",
+        "state": "Sonora",
+        "category": "General",
+        "url": "https://www.facebook.com/ParqueLaRuinaHMO"
+    },
+    // ... (rest of venues if needed, but we rely on backend mainly)
+];
+
+let venues = INLINED_VENUES;
 let allEvents = [];
 let currentDateRange = '3days';
-let currentCategory = 'all';
 
 document.addEventListener('DOMContentLoaded', async () => {
-    // 1. Setup Listeners
+    // 2. Setup Listeners
+    // Auto-update on filter change
+    const citySelect = document.getElementById('citySelect');
+    const catSelect = document.getElementById('catSelect');
 
-    // Category Pills
-    document.querySelectorAll('.pill').forEach(btn => {
-        btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.pill').forEach(b => b.classList.remove('active'));
-            e.target.classList.add('active');
-            currentCategory = e.target.getAttribute('data-category');
-            filterEvents();
-        });
-    });
+    if (citySelect) citySelect.addEventListener('change', filterEvents);
+    if (catSelect) catSelect.addEventListener('change', filterEvents);
 
     // Date Buttons Logic
-    document.querySelectorAll('.seg-btn').forEach(btn => {
+    document.querySelectorAll('.segment-btn').forEach(btn => {
         btn.addEventListener('click', (e) => {
-            document.querySelectorAll('.seg-btn').forEach(b => b.classList.remove('active'));
+            // Remove active from all
+            document.querySelectorAll('.segment-btn').forEach(b => b.classList.remove('active'));
+            // Add to clicked
             e.target.classList.add('active');
+            // Update state
             currentDateRange = e.target.getAttribute('data-range');
+            // Re-run filter using new logic
             filterEvents();
         });
     });
 
-    // Auto-run
+    // Auto-run for demo effect
     filterEvents();
-    // Init Status Text
+
+    // Init Status Text (Simulated Server Time)
     updateServerStatus();
+    // Update every minute (UI only)
+    setInterval(updateServerStatus, 60000);
 });
 
-// SIMULATE SERVER STATE 
+// SIMULATE SERVER STATE (To be replaced by real fetch to HuggingFace)
 let lastScrapeTime = null;
-let lastWeatherData = null;
 
 function updateServerStatus(isError = false) {
-    const el = document.getElementById('statusText');
-    const dot = document.querySelector('.status-dot');
+    // Global variable for currentLang is in translations.js
+    if (typeof translations === 'undefined') return;
+
+    const el = document.getElementById('updateText');
+    const dot = document.querySelector('.pulse-dot');
+    const badge = document.querySelector('.update-info');
 
     if (isError) {
-        el.innerText = "Error de Conexión";
-        if (dot) dot.className = 'status-dot error';
+        // Error State
+        el.innerText = translations[currentLang].syncError;
+        if (dot) dot.style.backgroundColor = '#ef4444'; // Red
+        if (badge) badge.style.borderColor = 'rgba(239, 68, 68, 0.5)';
         return;
     }
 
+    // Checking if we have valid data yet
     if (!lastScrapeTime || isNaN(lastScrapeTime.getTime())) {
-        el.innerText = "Sistema: Esperando...";
-        if (dot) dot.className = 'status-dot'; // Neutral
+        el.innerText = "Next scan: 5AM";
+        if (dot) dot.style.backgroundColor = '#eab308'; // Yellow
         return;
     }
 
-    if (dot) dot.className = 'status-dot live';
+    // Success State - Show "Last: Date, Time • Next: 5AM"
+    if (dot) dot.style.backgroundColor = '#22c55e'; // Green
+    if (badge) badge.style.borderColor = 'rgba(255, 255, 255, 0.05)';
 
     const options = { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' };
-    const formattedDate = lastScrapeTime.toLocaleString('es-MX', options);
+    const formattedDate = lastScrapeTime.toLocaleString('en-US', options);
 
-    el.innerText = `Actualizado: ${formattedDate}`;
+    if (el) el.innerText = `Last: ${formattedDate} • Next: 5AM`;
 }
+// Export for translations.js to call if language changes
+window.updateServerStatus = updateServerStatus;
 
-// --- WEATHER LOGIC ---
-function updateWeather(dailyData) {
-    const widget = document.getElementById('weatherWidget');
-    if (!dailyData || dailyData.length === 0) return;
+// --- FILTER & API LOGIC ---
 
-    let html = '';
-    // Show next 5 days
-    dailyData.slice(0, 5).forEach((day, i) => {
-        const dateObj = new Date(day.date + 'T12:00:00'); // Fix TZ
-        const dayName = i === 0 ? 'Hoy' : dateObj.toLocaleDateString('es-MX', { weekday: 'short' });
-
-        html += `
-            <div class="weather-day">
-                <div class="w-dayname">${dayName}</div>
-                <div class="w-icon">☀️</div>
-                <div class="w-temp">
-                    <span class="w-max">${day.max}°</span>
-                    <span class="w-min">${day.min}°</span>
-                </div>
-            </div>
-        `;
-    });
-
-    widget.innerHTML = html;
-}
-
-// --- API & FILTER LOGIC ---
-const API_URL = 'https://yepzhi-eventseeker.hf.space';
+const API_URL = 'https://yepzhi-eventseeker.hf.space'; // Backend on Hugging Face
 
 async function filterEvents() {
+    const citySelect = document.getElementById('citySelect');
+    const catSelect = document.getElementById('catSelect');
+
+    const city = citySelect ? citySelect.value : 'all';
+    const Category = catSelect ? catSelect.value : 'all';
+    // Current Date Range is tracked by global variable or we can read DOM
+    // Global 'currentDateRange' is updated by button clicks
+
     const grid = document.getElementById('resultsGrid');
+    // Show Loading
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5);">Scanning sources...</div>';
 
-    if (allEvents.length === 0) {
-        grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5);">Conectando con Deep Research AI...</div>';
-    }
+    let eventsToDisplay = [];
 
-    // Apply Local Filters
-    applyLocalFilters(grid);
-
-    // Ensure Stream is Active (Idempotent)
-    startStream(grid);
-}
-
-function applyLocalFilters(container) {
-    if (allEvents.length === 0) return;
-
-    // Filter by Category
-    let filtered = allEvents;
-    if (currentCategory !== 'all') {
-        filtered = filtered.filter(ev => {
-            // Check tags or category field
-            const cat = ev.venue.category || '';
-            const tags = ev.tags || [];
-            return cat.includes(currentCategory) || tags.some(t => t.includes(currentCategory));
-        });
-    }
-
-    // Filter by Date
-    filtered = filtered.filter(ev => checkDateRange(ev.date, currentDateRange));
-
-    renderEvents(filtered, container);
-}
-
-let evtSource = null;
-function startStream(grid) {
-    if (evtSource && evtSource.readyState !== 2) return; // Already connected
-
-    evtSource = new EventSource(`${API_URL}/scrape`);
+    // 1. Try Fetching from Backend (STREAMING)
+    const evtSource = new EventSource(`${API_URL}/scrape?city=${city}&category=${Category}`);
 
     evtSource.onmessage = function (event) {
+        // Keep stream open for live updates
         try {
             const data = JSON.parse(event.data);
 
             if (data.type === 'log') {
-                const el = document.getElementById('statusText');
-                if (el) el.innerText = `Deep Research: ${data.message}`;
+                // Badge progress update only (visor removed)
+                if (data.progress !== undefined && data.progress !== null) {
+                    const el = document.getElementById('updateText');
+                    const dot = document.querySelector('.pulse-dot');
+                    if (el) el.innerText = `AI Scan: ${data.progress}%`;
+                    if (dot) dot.style.backgroundColor = '#eab308'; // Yellow
+                }
             }
 
             if (data.type === 'result') {
-                allEvents = data.events || [];
-
-                // Handle Weather
-                if (data.weather) {
-                    lastWeatherData = data.weather;
-                    updateWeather(data.weather);
-                }
+                // Final Data
+                eventsToDisplay = data.events || [];
 
                 if (data.timestamp) {
                     lastScrapeTime = new Date(data.timestamp);
-                    updateServerStatus();
+                    if (data.nextScan) window.nextScanTime = data.nextScan;
+                    // Only update text to "Time ago" if NOT currently scanning
+                    if (!data.events || data.events.length > 0) updateServerStatus();
 
+                    // Restore System Status to Live
                     const statusEl = document.getElementById('systemStatus');
-                    if (statusEl) statusEl.innerHTML = `<span class="status-dot live"></span><span class="status-text">Live</span>`;
+                    if (statusEl) {
+                        statusEl.innerHTML = `
+                            <span class="status-dot live"></span>
+                            <span class="status-text">Live</span>
+                        `;
+                    }
                 }
 
-                applyLocalFilters(grid);
+                // Render Logic
+                const filtered = eventsToDisplay.filter(ev => checkDateRange(ev.date, currentDateRange));
+                renderEvents(filtered, grid);
             }
 
         } catch (e) {
@@ -164,45 +156,54 @@ function startStream(grid) {
     };
 
     evtSource.onerror = function (err) {
+        console.error("EventSource failed:", err);
+        evtSource.close();
+
+        // Update System Status to Error (stays red, no auto-retry)
         const statusEl = document.getElementById('systemStatus');
-        if (statusEl) statusEl.innerHTML = `<span class="status-dot error"></span><span class="status-text">Error</span>`;
-        if (evtSource) evtSource.close();
-        evtSource = null;
-        // Retry in 5s
-        setTimeout(() => startStream(grid), 5000);
+        if (statusEl) {
+            statusEl.innerHTML = `
+                <span class="status-dot error"></span>
+                <span class="status-text">Error</span>
+            `;
+        }
     };
 }
 
 function checkDateRange(eventDateIso, range) {
     const eventDate = new Date(eventDateIso);
     const now = new Date();
+
+    // Normalize "Today" to start of day for comparison
     const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     const eventDayStart = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
 
     const diffTime = eventDayStart - todayStart;
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
 
-    if (range === 'today') return diffDays <= 1;
-    if (range === '3days') return diffDays <= 3;
-    if (range === '7days') return diffDays >= 0 && diffDays <= 7;
-    if (range === '30days') return diffDays >= 0 && diffDays <= 30;
+    if (range === 'today') {
+        return diffDays <= 1; // Allow 24h window
+    }
+    if (range === '3days') {
+        return diffDays <= 3;
+    }
+    if (range === '7days') {
+        return diffDays >= 0 && diffDays <= 7;
+    }
+    if (range === '30days') {
+        return diffDays >= 0 && diffDays <= 30;
+    }
     return true;
 }
 
 function renderEvents(events, container) {
     container.innerHTML = '';
-
-    // Sort by Date then Time
-    events.sort((a, b) => {
-        const da = new Date(a.date);
-        const db = new Date(b.date);
-        return da - db;
-    });
+    container.className = 'events-list'; // Switch to List View
 
     if (events.length === 0) {
         container.innerHTML = `
         <div style="text-align:center; opacity:0.5; padding:40px; border:1px dashed rgba(255,255,255,0.1); border-radius:20px;">
-            No hay eventos encontrados para <strong>${currentDateRange.toUpperCase()}</strong>.
+            No real events found for <strong>${currentDateRange.toUpperCase()}</strong>.
         </div>`;
         return;
     }
@@ -211,31 +212,26 @@ function renderEvents(events, container) {
         const row = document.createElement('div');
         row.className = 'event-row';
 
-        // Spanish Date
-        const dateObj = new Date(ev.date + 'T12:00:00'); // Force Timezone neutrality
-        const dayName = dateObj.toLocaleDateString('es-MX', { weekday: 'short' });
-        const dayNum = dateObj.getDate();
-        // Time
-        const timeStr = ev.time || 'TBD';
+        const dateObj = new Date(ev.date);
+        const month = dateObj.toLocaleString('default', { month: 'short' });
+        const day = dateObj.getDate();
 
         row.innerHTML = `
             <div class="row-date">
-                <span class="row-month">${dayName}</span>
-                <span class="row-day">${dayNum}</span>
+                <span class="row-month">${month}</span>
+                <span class="row-day">${day}</span>
             </div>
             
             <div class="row-info">
                 <div class="row-title">
                     ${ev.title} 
+                    ${ev.aiVerified ? '<span style="font-size:0.6em; background:#22c55e; color:black; padding:2px 4px; border-radius:4px; margin-left:6px;">AI Verified ✨</span>' : ''}
                 </div>
-                <div class="row-meta">
-                     📍 ${ev.venue.name || 'Hermosillo'} • ⏰ ${timeStr}
-                </div>
-                <div class="row-desc">${ev.description || ''}</div>
+                <div class="row-venue">${ev.venue.name} • ${ev.venue.city}</div>
             </div>
 
-            <a href="${ev.link}" target="_blank" class="row-btn" title="Ver Evento">
-                Ver
+            <a href="${ev.link}" target="_blank" class="row-btn" title="View Details">
+                ➜
             </a>
         `;
         container.appendChild(row);

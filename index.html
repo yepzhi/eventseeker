@@ -4,17 +4,17 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>EventSeeker | Curated Events</title>
-    <link rel="stylesheet" href="styles.css?v=1.1">
-    <!-- Font -->
+    <title>EventSeeker - Sonora</title>
+    <link rel="stylesheet" href="styles.css">
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
 </head>
 
 <body>
-
-
 
     <div class="glass-container">
         <!-- Lang Toggle -->
@@ -26,12 +26,13 @@
 
         <div class="header">
             <h1>EventSeeker✨</h1>
-            <p class="subtitle">Deep Research AI • Próximos Eventos</p>
+            <p class="subtitle" id="subtitle">Automatic scraping of top events in Sonora, AZ & BC.</p>
 
-            <div class="status-row">
-                <div id="statusBadge" class="status-badge">
-                    <div class="status-dot"></div>
-                    <span id="statusText">Sistema: Esperando...</span>
+            <div style="display:flex; gap:10px; justify-content:center; margin-top:10px;">
+                <div id="statusBadge" class="update-info">
+                    <!-- Reverted class name to match old styles if needed, or stick to styles.css definitions -->
+                    <div class="pulse-dot"></div>
+                    <span id="updateText">Next scan: 5AM</span>
                 </div>
 
                 <!-- Connection Status -->
@@ -39,73 +40,74 @@
                     <div class="status-dot live"></div>
                     <span class="status-text">Live</span>
                 </div>
-
-                <!-- Small Weather Widget -->
-                <div id="weatherWidget" class="weather-widget-small">
-                    <span class="loading-weather">Clima...</span>
-                </div>
             </div>
         </div>
 
-        <div class="control-group">
-            <span class="control-label" id="lblWhat">What?</span>
-            <select id="catSelect" class="input-select">
-                <option value="all">Everything (All Types)</option>
-                <option value="Conciertos">Concerts</option>
-                <option value="Fiestas">Nightlife</option>
-                <option value="Cultura">Culture</option>
-                <option value="Deportes">Sports</option>
-            </select>
+        <!-- CONTROLS CONTAINER -->
+        <div class="controls-wrapper">
+
+            <div class="controls-row">
+                <!-- WHERE -->
+                <div class="control-group">
+                    <span class="control-label" id="lblWhere">Where?</span>
+                    <select id="citySelect" class="input-select">
+                        <option value="all">All Cities</option>
+                        <option value="Hermosillo" selected>Hermosillo, SON</option>
+                        <option value="Tijuana">Tijuana, BC</option>
+                        <option value="Tucson">Tucson, AZ</option>
+                        <option value="Phoenix">Phoenix, AZ</option>
+                    </select>
+                </div>
+
+                <!-- WHAT -->
+                <div class="control-group">
+                    <span class="control-label" id="lblWhat">What?</span>
+                    <select id="catSelect" class="input-select">
+                        <option value="all">Everything (All Types)</option>
+                        <option value="Conciertos">Concerts</option>
+                        <option value="Fiestas">Nightlife</option>
+                        <option value="Cultura">Culture</option>
+                        <option value="Deportes">Sports</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- WHEN -->
+            <div class="control-group" style="margin-top:10px;">
+                <span class="control-label" id="lblWhen">When?</span>
+                <div class="segmented-control">
+                    <button class="segment-btn active" data-range="today" id="btnToday">Today</button>
+                    <button class="segment-btn" data-range="3days" id="btn3Days">Next 3 Days</button>
+                    <button class="segment-btn" data-range="7days" id="btn7Days">Next 7 Days</button>
+                    <button class="segment-btn" data-range="30days" id="btnMonth">Next 30 Days</button>
+                </div>
+            </div>
+
         </div>
-    </div>
 
-    <!-- Row 2: Date Segmented Control -->
-    <div class="control-group">
-        <span class="control-label" id="lblWhen">When?</span>
-        <div class="segmented-control">
-            <button class="segment-btn" data-range="today">Today</button>
-            <button class="segment-btn active" data-range="3days">Next 3 Days</button>
-            <button class="segment-btn" data-range="7days">Next 7 Days</button>
-            <button class="segment-btn" data-range="30days">Next 30 Days</button>
+        <!-- RESULTS GRID -->
+        <div class="events-list" id="resultsGrid">
+            <!-- Events injected here -->
         </div>
-    </div>
-
 
     </div>
 
-
-
-    <!-- Timeline / Results -->
-    <div id="resultsGrid" class="events-grid">
-        <!-- Cards will be injected here by JS -->
-        <!-- Loading State Placeholder -->
-        <div style="grid-column: 1/-1; text-align: center; color: rgba(255,255,255,0.3); padding: 40px;">
-            Ready to seek. Select filters above.
-        </div>
-    </div>
-
-    </div>
-
+    <!-- FOOTER -->
     <div class="footer">
-        <!-- hopRadio Button -->
-        <a href="https://yepzhi.com/hopRadio/" target="_blank" class="hopradio-btn">
-            <span style="font-size: 0.7em; color: #999; text-transform: uppercase; letter-spacing: 1px;">Listen</span>
-            <span style="font-weight: 900;"><span style="color:#fbbf24;">hop</span><span
-                    style="color:#ef4444;">Radio</span></span>
-            <svg style="width:16px; height:16px; fill:none; stroke:currentColor;" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3">
-                </path>
-            </svg>
+        <a href="https://hopradio.net" target="_blank" class="hopradio-btn">
+            <span>LISTEN</span> <span style="color:#facc15; font-weight:800;">hopRadio</span> <span>→</span>
         </a>
 
-        <!-- Main Footer Button -->
-        <a href="https://yepzhi.com" target="_blank" class="footer-btn">
-            EventSeeker v3.0 • Developed by @yepzhi 💙 Click here for more!
-        </a>
+        <div style="margin-top:20px;">
+            <a href="https://github.com/yepzhi" target="_blank" class="footer-btn">
+                EventSeeker v3.0 • Developed by @yepzhi 💙 Click here for more!
+            </a>
+        </div>
     </div>
 
-    <script src="translations.js?v=1.1"></script>
-    <script src="app.js?v=1.1"></script>
+    <!-- SCRIPTS -->
+    <script src="translations.js"></script>
+    <script src="app.js"></script>
 </body>
 
 </html>
