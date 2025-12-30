@@ -500,6 +500,8 @@ body::before {
     font-size: 1.4em;
     font-weight: 800;
     letter-spacing: -1px;
+    text-transform: none;
+    /* Preserve hopRadio capitalization */
 }
 
 .hop-text {
