@@ -19,7 +19,8 @@ const translations = {
         footerDev: "EventSeeker v1.0 • Developed by @yepzhi",
         updatedAgo: "Updated {min} minutes ago",
         syncError: "Sync Error",
-        footerText: "v2.2 • Do you like this? 💙 learn more here. Developed by @yepzhi"
+        footerLine1: "v2.2 • Do you like this? 💙",
+        footerLine2: "learn more here"
     },
     es: {
         subtitle: "Búsqueda automática de eventos en la H City!",
@@ -41,7 +42,8 @@ const translations = {
         footerDev: "EventSeeker v1.0 • Desarrollado por @yepzhi",
         updatedAgo: "Actualizado hace {min} minutos",
         syncError: "Error de Sincronización",
-        footerText: "v2.2 • ¿Te gusta esto? 💙 conoce más aquí. Developed by @yepzhi"
+        footerLine1: "v2.2 • ¿Te gusta esto? 💙",
+        footerLine2: "conoce más aquí"
     }
 };
 
@@ -115,8 +117,10 @@ function updateTexts() {
     document.querySelector('[data-range="30days"]').innerText = t.btn30Days;
 
     // Footer
-    const footerBtn = document.getElementById('footerBtn');
-    if (footerBtn) footerBtn.innerText = t.footerText;
+    const footerLine1 = document.getElementById('footerLine1');
+    const footerLine2 = document.getElementById('footerLine2');
+    if (footerLine1) footerLine1.innerText = t.footerLine1;
+    if (footerLine2) footerLine2.innerText = t.footerLine2;
 }
 
 function updateButton() {
