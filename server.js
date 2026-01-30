@@ -361,7 +361,8 @@ async function analyzeWithGemini(text, venueContext) {
     if (!text || text.length < 50) return [];
 
 
-    const API_KEY = process.env.GEMINI_API_KEY;
+    // Use the global key which includes the fallback
+    const API_KEY = GEMINI_API_KEY;
     if (!API_KEY) {
         console.error("❌ Missing GEMINI_API_KEY in environment variables.");
         return [];
