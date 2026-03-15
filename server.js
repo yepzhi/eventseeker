@@ -153,8 +153,8 @@ async function performDeepResearch() {
         });
 
         const prompt = `
-        Give a full list of upcoming events purely from TICKET SELLERS and BOLETERAS (e.g., Xticket, Ticketmaster, Boletomovil, TuBoleto, Boletia, etc.) in Hermosillo Sonora for the next 30 days.
-        Take your time, no hurry. Focus on "Hermosillo" and deep check these ticket-selling platforms specifically. Do NOT include generic bar promotions, parties, or restaurant specials unless they require purchasing a ticket through a boletera.
+        Give a full list of upcoming events purely from TICKET SELLERS and BOLETERAS (e.g., Xticket, Ticketmaster, Boletomovil, TuBoleto, Boletia, Luma (lu.ma), etc.) in Hermosillo Sonora for the next 30 days.
+        Take your time, no hurry. Focus on "Hermosillo" and deep check these ticket-selling platforms specifically. Check https://lu.ma/discover for events in Hermosillo. Do NOT include generic bar promotions, parties, or restaurant specials unless they require purchasing a ticket through a boletera.
         
         Return a valid JSON object with an "events" array.
         Each event must verify:
