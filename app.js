@@ -90,8 +90,10 @@ window.updateServerStatus = updateServerStatus;
 
 // --- FILTER & API LOGIC ---
 
-// Backend runs on Hugging Face, frontend may be served from yepzhi.com
-const API_URL = 'https://yepzhi-eventseeker.hf.space/scrape';
+// Backend API detection: Use localhost if running locally, otherwise relative path
+const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+    ? 'http://localhost:3000/scrape'
+    : 'https://yepzhi-eventseeker.hf.space/scrape';
 
 async function filterEvents() {
     const citySelect = document.getElementById('citySelect');

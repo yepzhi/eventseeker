@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const { chromium } = require('playwright');
 const { GoogleGenerativeAI } = require('@google/generative-ai');
 require('dotenv').config();
 
@@ -56,7 +55,7 @@ function loadCache() {
 
 function saveCache() {
     try {
-        cleanupOldEvents(); // Remove past events before saving
+// function cleanupOldEvents(); // Removed per user request to be accumulative
         fs.writeFileSync(CACHE_FILE, JSON.stringify({
             events: GLOBAL_CACHE.events,
             weather: GLOBAL_CACHE.weather, // Save weather
@@ -69,25 +68,7 @@ function saveCache() {
     }
 }
 
-function cleanupOldEvents() {
-    const now = new Date();
-    now.setHours(0, 0, 0, 0); // Start of today
-
-    const beforeCount = GLOBAL_CACHE.events.length;
-    GLOBAL_CACHE.events = GLOBAL_CACHE.events.filter(evt => {
-        if (!evt.date || evt.date === 'Upcoming') return true;
-        try {
-            const evtDate = new Date(evt.date);
-            if (isNaN(evtDate.getTime())) return true; // Keep if weird format
-            return evtDate >= now; // Keep if today or future
-        } catch (e) {
-            return true;
-        }
-    });
-
-    const removedCount = beforeCount - GLOBAL_CACHE.events.length;
-    if (removedCount > 0) console.log(`[System] Cleaned up ${removedCount} expired events.`);
-}
+// cleanupOldEvents removed to keep history accumulative.
 
 // Load on startup
 loadCache();
@@ -132,6 +113,11 @@ async function getWeather() {
     }
 }
 
+function broadcast(data) {
+    const payload = `data: ${JSON.stringify(data)}\n\n`;
+    CLIENTS.forEach(res => res.write(payload));
+}
+
 // --- DEEP RESEARCH ENGINE ---
 async function performDeepResearch() {
     const log = (msg, type = 'info') => {
@@ -157,28 +143,28 @@ async function performDeepResearch() {
     // 2. Try Gemini Search Grounding (Official Tool)
     try {
         log("Attempting Gemini Search Grounding...", 'warn');
-        const tools = [{ googleSearchRetrieval: {} }];
+        const tools = [{ googleSearch: {} }];
 
         // Use a model that supports tools (usually gemini-1.5-flash or pro)
         // Note: Using a specific model known to support tools
         const searchModel = genAI.getGenerativeModel({
-            model: "gemini-2.0-flash-exp",
+            model: "gemini-2.5-flash",
             tools: tools
         });
 
         const prompt = `
-        Give a full list of parties, live music presentations at bars in Hermosillo Sonora the next 30 days.
-        Take your time, no hurry. Focus on "Hermosillo" and deep check all available sources.
+        Give a full list of upcoming events purely from TICKET SELLERS and BOLETERAS (e.g., Xticket, Ticketmaster, Boletomovil, TuBoleto, Boletia, etc.) in Hermosillo Sonora for the next 30 days.
+        Take your time, no hurry. Focus on "Hermosillo" and deep check these ticket-selling platforms specifically. Do NOT include generic bar promotions, parties, or restaurant specials unless they require purchasing a ticket through a boletera.
         
         Return a valid JSON object with an "events" array.
         Each event must verify:
         - title: String (Spanish)
         - date: String (YYYY-MM-DD or "Upcoming")
         - time: String (e.g. "8:00 PM")
-        - location: String (Specific Venue Name, e.g. "Catedral", "Parque La Ruina", "Bar X". NEVER use "Hermosillo" or "Sonora" as location)
-        - category: One of ["Deportes", "Cultura", "Familia", "Fiesta", "General"]
-        - description: String (Max 100 chars, in Spanish, mention venue if known)
-        - link: Source URL if available
+        - location: String (Specific Venue Name, e.g. "CUM", "Expo Forum", "Teatro". NEVER use "Hermosillo" or "Sonora" as location)
+        - category: One of ["Conciertos", "Deportes", "Cultura", "Familia", "Fiesta", "General"]
+        - description: String (Max 100 chars, in Spanish, mention the ticket vendor e.g. "Boletos en Xticket")
+        - link: Source URL if available (ideally the link to buy tickets)
         
         Focus on accuracy. If venue is unknown, use "Ubicación por definir".
         `;
@@ -199,8 +185,7 @@ async function performDeepResearch() {
         }
 
     } catch (e) {
-        log(`Standard Search Grounding failed (${e.message}). Switching to Web Scrape Fallback...`, 'warn');
-        events = await scrapeGoogleFallback(log);
+        log(`Gemini Search Grounding failed: ${e.message}`, 'error');
     }
 
     // 3. Process & Merge
@@ -235,49 +220,7 @@ async function performDeepResearch() {
     saveCache();
 }
 
-// Fallback: Manually visit Google/Eventbrite Search with Chromium
-async function scrapeGoogleFallback(log) {
-    let foundEvents = [];
-    const browser = await chromium.launch({
-        headless: true,
-        args: ['--no-sandbox', '--disable-setuid-sandbox', '--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled']
-    });
-
-    try {
-        const page = await browser.newPage();
-
-        // Strategy: Go to a Google Search for "Eventos en Hermosillo"
-        const query = encodeURIComponent(`eventos en ${RESEARCH_CITY} proximos dias`);
-        const url = `https://www.google.com/search?q=${query}&ibp=htl;events`; // Event rich snippet view
-
-        log(`Browsing Google Events view...`, 'info');
-        await page.goto(url, { waitUntil: 'networkidle', timeout: 30000 });
-
-        // Scroll to load more
-        await page.evaluate(async () => {
-            const container = document.querySelector('div[jsname="gE6ib"]'); // Common event container class (risky) or just body
-            // Just scroll body
-            for (let i = 0; i < 5; i++) {
-                window.scrollBy(0, 1000);
-                await new Promise(r => setTimeout(r, 1000));
-            }
-        });
-
-        // Get text content
-        const bodyText = await page.evaluate(() => document.body.innerText);
-
-        // Feed to Gemini (plain)
-        log(`Analyzing raw search data with Gemini...`, 'info');
-        const rawEvents = await analyzeWithGemini(bodyText, { city: RESEARCH_CITY, id: 'google_scrape' });
-        foundEvents = rawEvents;
-
-    } catch (e) {
-        log(`Fallback scrape failed: ${e.message}`, 'error');
-    } finally {
-        await browser.close();
-    }
-    return foundEvents;
-}
+// Fallback removed per user request.
 
 function processAndMergeEvents(newEvents, log) {
     let added = 0;
@@ -316,6 +259,7 @@ function processAndMergeEvents(newEvents, log) {
 
     GLOBAL_CACHE.timestamp = new Date().toISOString();
     log(`Deep Research Complete. Added ${added} new events. Total: ${GLOBAL_CACHE.events.length}`, 'success');
+    return added;
 }
 
 // Trigger Scrape Endpoint (SSE Streaming)
@@ -345,8 +289,8 @@ function scheduleScanAt5AM_GMT7() {
 }
 
 // ONE-TIME: Run immediately since today's 5AM already passed
-// console.log(`[System] Running ONE immediate scan (today's 5AM window missed).`);
-// setTimeout(() => performDeepResearch(), 5000);
+console.log(`[System] Running ONE immediate scan (today's 5AM window missed).`);
+setTimeout(() => performDeepResearch(), 5000);
 
 // Then schedule future scans at 5AM GMT-7
 scheduleScanAt5AM_GMT7();

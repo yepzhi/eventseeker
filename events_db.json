@@ -1,118 +1,493 @@
 {
   "events": [
     {
-      "id": "man_16",
-      "title": "Gira en Kasas: Javier Blake",
-      "date": "2026-01-29",
-      "time": "8:00 PM",
+      "id": "gen_17735581370110.45714563462270674",
+      "title": "Smart City Hackathon 2026",
+      "date": "2026-03-18",
+      "time": "8:00 AM",
       "venue": {
-        "name": "Ubicación Secreta (Casa Madrid)",
+        "name": "Tecnológico de Monterrey, Campus Hermosillo",
         "city": "Hermosillo",
         "category": "Cultura",
-        "url": ""
+        "url": "https://www.eventbrite.es/d/mexico--hermosillo/events/"
       },
-      "description": "Concierto acústico íntimo. Ubicación revelada a asistentes.",
-      "link": "",
+      "description": "Hackathon enfocado en soluciones para una ciudad inteligente. Boletos en Eventbrite.",
+      "link": "https://www.eventbrite.es/d/mexico--hermosillo/events/",
       "aiVerified": true,
       "tags": [
-        "Cultura",
-        "Concierto"
+        "Cultura"
       ]
     },
     {
-      "id": "man_17",
-      "title": "Emi Vada (Audio Latino)",
-      "date": "2026-01-30",
-      "time": "9:30 PM",
+      "id": "gen_17735581370110.06675084410578025",
+      "title": "Muestra Gastronómica Saboreando Sonora",
+      "date": "2026-03-19",
+      "time": "7:00 PM",
       "venue": {
-        "name": "La Gloriosa Stage Bar",
+        "name": "Villa Toscana",
+        "city": "Hermosillo",
+        "category": "General",
+        "url": "https://xticket.mx/"
+      },
+      "description": "Evento para degustar lo mejor de la gastronomía sonorense. Boletos en Xticket.",
+      "link": "https://xticket.mx/",
+      "aiVerified": true,
+      "tags": [
+        "General"
+      ]
+    },
+    {
+      "id": "gen_17735581370110.06546884254800545",
+      "title": "MONSTARS: Mau Moctezuma & Poniboy B2B",
+      "date": "2026-03-21",
+      "time": "8:00 PM",
+      "venue": {
+        "name": "Parque La Ruina",
         "city": "Hermosillo",
         "category": "Fiesta",
-        "url": ""
+        "url": "https://xticket.mx/"
       },
-      "description": "Pop latino y ambiente social.",
-      "link": "",
+      "description": "Noche de música con DJ set de Mau Moctezuma y Poniboy. Boletos en Xticket y Eventbrite.",
+      "link": "https://xticket.mx/",
       "aiVerified": true,
       "tags": [
         "Fiesta"
       ]
     },
     {
-      "id": "man_18",
-      "title": "Teatro: ¡Laa Paca!",
-      "date": "2026-01-30",
-      "time": "8:30 PM",
+      "id": "gen_17735581370110.3083094727359976",
+      "title": "Desde el Expendio Tour 2026",
+      "date": "2026-03-28",
+      "time": "8:00 PM",
       "venue": {
-        "name": "El Mentidero",
+        "name": "Explanada Expogan",
         "city": "Hermosillo",
-        "category": "Cultura",
-        "url": ""
+        "category": "Fiesta",
+        "url": "https://www.boletito.com/"
       },
-      "description": "Comedia negra independiente.",
-      "link": "https://mentidero.mx",
+      "description": "Concierto con Brissa, Máximo Grado y Código FN. Boletos en Boletito.com.",
+      "link": "https://www.boletito.com/",
       "aiVerified": true,
       "tags": [
-        "Cultura",
-        "Teatro"
+        "Fiesta"
       ]
     },
     {
-      "id": "man_19",
-      "title": "Edición Especial en Concierto",
-      "date": "2026-01-31",
+      "id": "gen_17735581370110.7678492789821423",
+      "title": "El Padrino HMO Grill Challenge",
+      "date": "2026-03-28",
+      "time": "2:00 PM",
+      "venue": {
+        "name": "Parque La Ruina",
+        "city": "Hermosillo",
+        "category": "General",
+        "url": "https://xticket.mx/"
+      },
+      "description": "Torneo de parrilleros en Hermosillo. Boletos en Xticket.",
+      "link": "https://xticket.mx/",
+      "aiVerified": true,
+      "tags": [
+        "General"
+      ]
+    },
+    {
+      "id": "gen_17735581370110.7735243199739317",
+      "title": "Entre Copas y Verdades",
+      "date": "2026-03-28",
+      "time": "5:00 PM",
+      "venue": {
+        "name": "Jardin de eventos, Res Sacramento",
+        "city": "Hermosillo",
+        "category": "General",
+        "url": "https://www.eventbrite.es/d/mexico--hermosillo/events/"
+      },
+      "description": "Evento cultural y social en un ambiente relajado. Boletos en Eventbrite.",
+      "link": "https://www.eventbrite.es/d/mexico--hermosillo/events/",
+      "aiVerified": true,
+      "tags": [
+        "General"
+      ]
+    },
+    {
+      "id": "gen_17735581370110.6078146216710385",
+      "title": "ULTIMATUM",
+      "date": "2026-03-29",
+      "time": "4:30 PM",
+      "venue": {
+        "name": "Gimnasio Gregorio “Cancha 4”",
+        "city": "Hermosillo",
+        "category": "Deportes",
+        "url": "https://www.eventbrite.es/d/mexico--hermosillo/events/"
+      },
+      "description": "Evento deportivo de alta intensidad. Boletos en Eventbrite.",
+      "link": "https://www.eventbrite.es/d/mexico--hermosillo/events/",
+      "aiVerified": true,
+      "tags": [
+        "Deportes"
+      ]
+    },
+    {
+      "id": "gen_17735582870340.27553511023862876",
+      "title": "Monstars",
+      "date": "2026-03-21",
+      "time": "8:00 PM",
+      "venue": {
+        "name": "Parque La Ruina",
+        "city": "Hermosillo",
+        "category": "General",
+        "url": "https://xticket.mx/"
+      },
+      "description": "Disfruta de este evento en vivo. Boletos en Xticket.MX.",
+      "link": "https://xticket.mx/",
+      "aiVerified": true,
+      "tags": [
+        "General"
+      ]
+    },
+    {
+      "id": "gen_17735582870340.6100129491072155",
+      "title": "K-Pop Fest",
+      "date": "2026-03-22",
+      "time": "3:00 PM",
+      "venue": {
+        "name": "Auditorio Cívico del Estado",
+        "city": "Hermosillo",
+        "category": "General",
+        "url": "https://arema.mx/"
+      },
+      "description": "Festival con tributos a K-Pop Demon Hunters y Lara Campos. Boletos en Arema.mx y La Onda Latina.",
+      "link": "https://arema.mx/",
+      "aiVerified": true,
+      "tags": [
+        "General"
+      ]
+    },
+    {
+      "id": "gen_17735582870340.7618732571917965",
+      "title": "BTS Tribute",
+      "date": "2026-03-22",
+      "time": "5:00 PM",
+      "venue": {
+        "name": "Auditorio Cívico del Estado",
+        "city": "Hermosillo",
+        "category": "General",
+        "url": "https://arema.mx/"
+      },
+      "description": "Concierto homenaje al popular grupo surcoreano BTS. Boletos en Arema.mx y La Onda Latina.",
+      "link": "https://arema.mx/",
+      "aiVerified": true,
+      "tags": [
+        "General"
+      ]
+    },
+    {
+      "id": "gen_17735582870340.16265028272882254",
+      "title": "El Show de Lara Campos",
+      "date": "2026-04-12",
+      "time": "5:00 PM",
+      "venue": {
+        "name": "Centro de Usos Múltiples (CUM)",
+        "city": "Hermosillo",
+        "category": "Familia",
+        "url": "https://boletomovil.com/"
+      },
+      "description": "La joven estrella infantil Lara Campos presenta su espectáculo musical. Boletos en Boletomóvil.",
+      "link": "https://boletomovil.com/",
+      "aiVerified": true,
+      "tags": [
+        "Familia"
+      ]
+    },
+    {
+      "id": "gen_17735583457270.8787472589452967",
+      "title": "Muestra Gastronomica Saboreando Sonora",
+      "date": "2026-03-19",
+      "time": "7:00 PM",
+      "venue": {
+        "name": "Villa Toscana",
+        "city": "Hermosillo",
+        "category": "Cultura",
+        "url": "Ubicación por definir"
+      },
+      "description": "Evento gastronómico con degustaciones. Boletos en Xticket.",
+      "link": "Ubicación por definir",
+      "aiVerified": true,
+      "tags": [
+        "Cultura"
+      ]
+    },
+    {
+      "id": "gen_17735583457270.4524221305107663",
+      "title": "Monstars: Mau Moctezuma & Poniboy B2B x BACKROOM",
+      "date": "2026-03-21",
       "time": "8:00 PM",
       "venue": {
         "name": "Parque La Ruina",
         "city": "Hermosillo",
         "category": "Fiesta",
+        "url": "Ubicación por definir"
+      },
+      "description": "Evento musical con DJs Mau Moctezuma y Poniboy. Boletos en Xticket.",
+      "link": "Ubicación por definir",
+      "aiVerified": true,
+      "tags": [
+        "Fiesta"
+      ]
+    },
+    {
+      "id": "gen_17735583457270.5033041331857429",
+      "title": "El Padrino HMO Grill Chalenge",
+      "date": "2026-03-28",
+      "time": "2:00 PM",
+      "venue": {
+        "name": "Parque La Ruina",
+        "city": "Hermosillo",
+        "category": "General",
+        "url": "Ubicación por definir"
+      },
+      "description": "Torneo de parrilleros. Boletos en Xticket.",
+      "link": "Ubicación por definir",
+      "aiVerified": true,
+      "tags": [
+        "General"
+      ]
+    },
+    {
+      "id": "gen_17735583457270.3790553296000312",
+      "title": "Tributo Avril Lavigne",
+      "date": "2026-04-11",
+      "time": "9:00 PM",
+      "venue": {
+        "name": "London Pub",
+        "city": "Hermosillo",
+        "category": "General",
+        "url": "Ubicación por definir"
+      },
+      "description": "Concierto tributo a Avril Lavigne. Boletos en Eventbrite.",
+      "link": "Ubicación por definir",
+      "aiVerified": true,
+      "tags": [
+        "General"
+      ]
+    },
+    {
+      "id": "gen_17735583457270.8781715636703633",
+      "title": "Lara Campos",
+      "date": "2026-04-12",
+      "time": "5:00 PM",
+      "venue": {
+        "name": "Ubicación por definir",
+        "city": "Hermosillo",
+        "category": "Familia",
+        "url": "Ubicación por definir"
+      },
+      "description": "Show de Lara Campos. Boletos en Boletomovil.",
+      "link": "Ubicación por definir",
+      "aiVerified": true,
+      "tags": [
+        "Familia"
+      ]
+    },
+    {
+      "id": "gen_17735586060840.08602864590753034",
+      "title": "Medio Maratón HMO",
+      "date": "2026-03-22",
+      "time": "7:00 AM",
+      "venue": {
+        "name": "Ubicación por definir",
+        "city": "Hermosillo",
+        "category": "Deportes",
         "url": ""
       },
-      "description": "El gran cierre del mes con música norteña y ambiente premium.",
+      "description": "Medio Maratón en Hermosillo. Inscripciones en línea.",
       "link": "",
       "aiVerified": true,
       "tags": [
-        "Fiesta",
-        "Concierto"
+        "Deportes"
+      ]
+    },
+    {
+      "id": "gen_17735586060840.014514405183607249",
+      "title": "Tributo BTS",
+      "date": "2026-03-22",
+      "time": "7:00 PM",
+      "venue": {
+        "name": "Auditorio Cívico del Estado",
+        "city": "Hermosillo",
+        "category": "Conciertos",
+        "url": ""
+      },
+      "description": "Única función de tributo a BTS. Boletos en venta.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Conciertos"
+      ]
+    },
+    {
+      "id": "gen_17735586060840.5373162758756642",
+      "title": "RUNNING-UP 7",
+      "date": "2026-03-28",
+      "time": "7:00 AM",
+      "venue": {
+        "name": "Ubicación por definir",
+        "city": "Hermosillo",
+        "category": "Deportes",
+        "url": ""
+      },
+      "description": "Carrera pedestre RUNNING-UP 7 en Hermosillo. Inscripciones en línea.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Deportes"
+      ]
+    },
+    {
+      "id": "gen_17735586060840.22751649469950164",
+      "title": "Candlelight: Vivaldi's Four Seasons",
+      "date": "2026-03-29",
+      "time": "8:00 PM",
+      "venue": {
+        "name": "Grand Agave",
+        "city": "Hermosillo",
+        "category": "Conciertos",
+        "url": "https://feverup.com/"
+      },
+      "description": "Concierto clásico a la luz de las velas. Boletos en Fever.",
+      "link": "https://feverup.com/",
+      "aiVerified": true,
+      "tags": [
+        "Conciertos"
+      ]
+    },
+    {
+      "id": "gen_17735586060840.11349602729979447",
+      "title": "Candlelight: Tributo a José José",
+      "date": "2026-03-29",
+      "time": "10:00 PM",
+      "venue": {
+        "name": "Grand Agave",
+        "city": "Hermosillo",
+        "category": "Conciertos",
+        "url": "https://feverup.com/"
+      },
+      "description": "Tributo sinfónico a José José a la luz de las velas. Boletos en Fever.",
+      "link": "https://feverup.com/",
+      "aiVerified": true,
+      "tags": [
+        "Conciertos"
+      ]
+    },
+    {
+      "id": "gen_17735586060840.9406790546505734",
+      "title": "Carrera Hospital Cima",
+      "date": "2026-03-29",
+      "time": "7:00 AM",
+      "venue": {
+        "name": "Ubicación por definir",
+        "city": "Hermosillo",
+        "category": "Deportes",
+        "url": ""
+      },
+      "description": "Carrera por la salud en Hermosillo. Inscripciones en línea.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Deportes"
+      ]
+    },
+    {
+      "id": "gen_17735586060840.8549977798230677",
+      "title": "Taco Fest",
+      "date": "2026-03-29",
+      "time": "12:00 PM",
+      "venue": {
+        "name": "Víactiva",
+        "city": "Hermosillo",
+        "category": "General",
+        "url": ""
+      },
+      "description": "Festival gastronómico de tacos. Boletos en venta.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "General"
+      ]
+    },
+    {
+      "id": "gen_17735586060840.675163093441582",
+      "title": "Sky Fest 2026",
+      "date": "2026-04-11",
+      "time": "10:00 AM",
+      "venue": {
+        "name": "Bahía de Kino",
+        "city": "Hermosillo",
+        "category": "Familia",
+        "url": ""
+      },
+      "description": "Festival de papalotes gigantes en Bahía de Kino. Boletos en venta.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Familia"
+      ]
+    },
+    {
+      "id": "gen_17735586060840.18463246219191998",
+      "title": "Battle Run | Relevos",
+      "date": "2026-04-12",
+      "time": "7:00 AM",
+      "venue": {
+        "name": "Ubicación por definir",
+        "city": "Hermosillo",
+        "category": "Deportes",
+        "url": ""
+      },
+      "description": "Carrera de relevos en Hermosillo. Inscripciones en línea.",
+      "link": "",
+      "aiVerified": true,
+      "tags": [
+        "Deportes"
       ]
     }
   ],
   "weather": [
     {
-      "date": "2026-01-28",
-      "max": 27,
-      "min": 11
+      "date": "2026-03-15",
+      "max": 33,
+      "min": 15
     },
     {
-      "date": "2026-01-29",
-      "max": 27,
-      "min": 13
+      "date": "2026-03-16",
+      "max": 34,
+      "min": 15
     },
     {
-      "date": "2026-01-30",
-      "max": 29,
-      "min": 16
+      "date": "2026-03-17",
+      "max": 34,
+      "min": 21
     },
     {
-      "date": "2026-01-31",
-      "max": 27,
-      "min": 17
+      "date": "2026-03-18",
+      "max": 34,
+      "min": 22
     },
     {
-      "date": "2026-02-01",
-      "max": 25,
-      "min": 17
+      "date": "2026-03-19",
+      "max": 38,
+      "min": 23
     },
     {
-      "date": "2026-02-02",
-      "max": 26,
-      "min": 17
+      "date": "2026-03-20",
+      "max": 38,
+      "min": 25
     },
     {
-      "date": "2026-02-03",
-      "max": 27,
-      "min": 18
+      "date": "2026-03-21",
+      "max": 37,
+      "min": 25
     }
   ],
-  "timestamp": "2025-12-29T19:30:00.000Z",
-  "nextScan": 1767182400000
+  "timestamp": "2026-03-15T07:10:06.084Z",
+  "nextScan": 1773645006088
 }

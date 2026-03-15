@@ -10,6 +10,8 @@ const translations = {
         catNightlife: "Nightlife",
         catCulture: "Culture",
         catSports: "Sports",
+        catFamily: "Family",
+        catGeneral: "General",
         btnToday: "Today",
         btn3Days: "Next 3 Days",
         btn7Days: "Next 7 Days",
@@ -33,6 +35,8 @@ const translations = {
         catNightlife: "Fiesta / Vida Nocturna",
         catCulture: "Cultura",
         catSports: "Deportes",
+        catFamily: "Familiar",
+        catGeneral: "General",
         btnToday: "Hoy",
         btn3Days: "Próx. 3 Días",
         btn7Days: "Esta Semana",
@@ -106,9 +110,11 @@ function updateTexts() {
     // Category Options
     document.querySelector('#catSelect option[value="all"]').innerText = t.catAll;
     document.querySelector('#catSelect option[value="Conciertos"]').innerText = t.catConcerts;
-    document.querySelector('#catSelect option[value="Fiestas"]').innerText = t.catNightlife;
+    document.querySelector('#catSelect option[value="Fiesta"]').innerText = t.catNightlife;
     document.querySelector('#catSelect option[value="Cultura"]').innerText = t.catCulture;
     document.querySelector('#catSelect option[value="Deportes"]').innerText = t.catSports;
+    document.querySelector('#catSelect option[value="Familia"]').innerText = t.catFamily;
+    document.querySelector('#catSelect option[value="General"]').innerText = t.catGeneral;
 
     // Date Buttons
     document.querySelector('[data-range="today"]').innerText = t.btnToday;
