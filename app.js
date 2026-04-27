@@ -90,10 +90,12 @@ window.updateServerStatus = updateServerStatus;
 
 // --- FILTER & API LOGIC ---
 
-// Backend API detection: Use localhost if running locally, otherwise relative path
-const API_URL = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
-    ? 'http://localhost:3000/scrape'
-    : 'https://yepzhi-eventseeker.hf.space/scrape';
+// Backend API detection
+const API_BASE = (window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1' || window.location.protocol === 'file:')
+    ? 'http://localhost:3000'
+    : 'https://yepzhi-eventseeker.hf.space';
+
+const API_URL = `${API_BASE}/events`;
 
 async function filterEvents() {
     const citySelect = document.getElementById('citySelect');
@@ -101,77 +103,59 @@ async function filterEvents() {
 
     const city = citySelect ? citySelect.value : 'all';
     const Category = catSelect ? catSelect.value : 'all';
-    // Current Date Range is tracked by global variable or we can read DOM
-    // Global 'currentDateRange' is updated by button clicks
 
     const grid = document.getElementById('resultsGrid');
-    // Show Loading
-    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5);">Scanning sources...</div>';
+    grid.innerHTML = '<div style="grid-column:1/-1;text-align:center;padding:40px;color:rgba(255,255,255,0.5);">Loading events...</div>';
 
-    let eventsToDisplay = [];
+    try {
+        const res = await fetch(`${API_URL}?city=${city}&category=${Category}`);
+        if (!res.ok) throw new Error(`Server responded ${res.status}`);
+        const data = await res.json();
 
-    // 1. Try Fetching from Backend (STREAMING)
-    const evtSource = new EventSource(`${API_URL}?city=${city}&category=${Category}`);
+        const events = data.events || [];
 
-    evtSource.onmessage = function (event) {
-        // Keep stream open for live updates
-        try {
-            const data = JSON.parse(event.data);
-
-            if (data.type === 'log') {
-                // Badge progress update only (visor removed)
-                if (data.progress !== undefined && data.progress !== null) {
-                    const el = document.getElementById('updateText');
-                    const dot = document.querySelector('.pulse-dot');
-                    if (el) el.innerText = `AI Scan: ${data.progress}%`;
-                    if (dot) dot.style.backgroundColor = '#eab308'; // Yellow
-                }
-            }
-
-            if (data.type === 'result') {
-                // Final Data
-                eventsToDisplay = data.events || [];
-
-                if (data.timestamp) {
-                    lastScrapeTime = new Date(data.timestamp);
-                    if (data.nextScan) window.nextScanTime = data.nextScan;
-                    // Only update text to "Time ago" if NOT currently scanning
-                    if (!data.events || data.events.length > 0) updateServerStatus();
-
-                    // Restore System Status to Live
-                    const statusEl = document.getElementById('systemStatus');
-                    if (statusEl) {
-                        statusEl.innerHTML = `
-                            <span class="status-dot live"></span>
-                            <span class="status-text">Live</span>
-                        `;
-                    }
-                }
-
-                // Handle Weather Data
-                if (data.weather && data.weather.length > 0) {
-                    lastWeatherData = data.weather;
-                    updateWeatherUI();
-                }
-
-                // Render Logic
-                const filtered = eventsToDisplay.filter(ev => checkDateRange(ev.date, currentDateRange));
-                renderEvents(filtered, grid);
-            }
-
-        } catch (e) {
-            console.error("Parse Error", e);
+        // Update status
+        if (data.timestamp) {
+            lastScrapeTime = new Date(data.timestamp);
+            updateServerStatus();
         }
-    };
 
-    // ... error handling ...
-    evtSource.onerror = function (err) {
-        console.error("EventSource failed:", err);
-        evtSource.close();
+        // Next scan info
+        if (data.nextScan) {
+            const hrsLeft = Math.round((data.nextScan - Date.now()) / 3600000);
+            const el = document.getElementById('updateText');
+            if (el && hrsLeft > 0) el.innerText = `Last AI Scan: ${lastScrapeTime ? lastScrapeTime.toLocaleDateString() : '—'} • Próx scan: ${hrsLeft}h`;
+        }
+
+        // System status dot
+        const statusEl = document.getElementById('systemStatus');
+        if (statusEl) {
+            statusEl.innerHTML = events.length > 0
+                ? `<span class="status-dot live"></span><span class="status-text">Live</span>`
+                : `<span class="status-dot"></span><span class="status-text">No data</span>`;
+        }
+
+        // Weather
+        if (data.weather && data.weather.length > 0) {
+            lastWeatherData = data.weather;
+            updateWeatherUI();
+        }
+
+        // Render filtered by date range
+        const filtered = events.filter(ev => checkDateRange(ev.date, currentDateRange));
+        renderEvents(filtered, grid);
+
+    } catch (err) {
+        console.error('EventSeeker fetch error:', err);
+        grid.innerHTML = `<div style="grid-column:1/-1;text-align:center;padding:40px;color:#ef4444;">⚠️ Could not connect to the AI engine. Retrying...</div>`;
+        updateServerStatus(true);
         const statusEl = document.getElementById('systemStatus');
         if (statusEl) statusEl.innerHTML = `<span class="status-dot error"></span><span class="status-text">Error</span>`;
-    };
+    }
 }
+
+// Poll every 5 minutes for fresh data (no token cost, just reads cache)
+setInterval(filterEvents, 5 * 60 * 1000);
 
 // --- WEATHER LOGIC ---
 let lastWeatherData = null;

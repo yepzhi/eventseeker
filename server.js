@@ -13,7 +13,7 @@ const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
 // Stable default
 const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-const SCRAPE_INTERVAL = 1000 * 60 * 60 * 24; // 24 Hours
+const SCRAPE_INTERVAL = 1000 * 60 * 60 * 72; // 72 Hours (3 Days)
 const CACHE_FILE = 'events_db.json';
 const KNOWLEDGE_BASE_FILE = 'knowledge_base_jan2026.txt';
 const RESEARCH_CITY = 'Hermosillo, Sonora';
@@ -262,38 +262,31 @@ function processAndMergeEvents(newEvents, log) {
     return added;
 }
 
-// Trigger Scrape Endpoint (SSE Streaming)
-// GLOBAL_CACHE and CLIENTS defined at top of file
+// --- SMART SCHEDULER (Every 3 Days, respects saved nextScan) ---
+function scheduleNextScan() {
+    const now = Date.now();
+    const savedNext = GLOBAL_CACHE.nextScan;
 
-// --- SCHEDULED SCAN AT 5AM GMT-7 (= 12:00 UTC) ---
-function scheduleScanAt5AM_GMT7() {
-    const now = new Date();
-    const next5AM_UTC = new Date(now);
-    // 5AM GMT-7 = 12:00 PM UTC (noon)
-    next5AM_UTC.setUTCHours(12, 0, 0, 0);
-
-    // If it's already past 12:00 UTC today, schedule for tomorrow
-    if (now >= next5AM_UTC) {
-        next5AM_UTC.setUTCDate(next5AM_UTC.getUTCDate() + 1);
+    let msUntilNext;
+    if (savedNext && savedNext > now) {
+        // Honor the saved schedule (e.g. after a server restart)
+        msUntilNext = savedNext - now;
+        const hrsLeft = Math.round(msUntilNext / 3600000);
+        console.log(`[System] Next scan in ${hrsLeft}h (loaded from disk).`);
+    } else {
+        // No valid saved schedule — run soon (5s) and then every 3 days
+        msUntilNext = 5000;
+        console.log(`[System] No upcoming scan on disk. Running initial scan in 5s.`);
     }
-
-    const msUntil5AM = next5AM_UTC - now;
-    const hoursUntil = Math.round(msUntil5AM / 3600000);
-    console.log(`[System] Next scan scheduled at 5:00 AM GMT-7 (in ${hoursUntil} hours).`);
 
     setTimeout(async () => {
         await performDeepResearch();
-        // After scan, schedule next one for 24 hours later
-        setInterval(performDeepResearch, 1000 * 60 * 60 * 24);
-    }, msUntil5AM);
+        // After each scan, schedule the next one in 3 days
+        setInterval(performDeepResearch, SCRAPE_INTERVAL);
+    }, msUntilNext);
 }
 
-// ONE-TIME: Run immediately since today's 5AM already passed
-console.log(`[System] Running ONE immediate scan (today's 5AM window missed).`);
-setTimeout(() => performDeepResearch(), 5000);
-
-// Then schedule future scans at 5AM GMT-7
-scheduleScanAt5AM_GMT7();
+scheduleNextScan();
 
 // Helper: Serve Images (Screenshots)
 app.use('/screenshots', express.static('screenshots'));
@@ -435,44 +428,42 @@ async function ingestKnowledgeBase() {
     }
 }
 
-// Client Endpoint: Returns CACHED data instantly (streaming logs if active)
+// --- REST ENDPOINT: Returns cached events instantly ---
+app.get('/events', (req, res) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Cache-Control', 'no-cache');
+
+    const { city, category } = req.query;
+
+    let filtered = GLOBAL_CACHE.events || [];
+    if (city && city !== 'all') filtered = filtered.filter(e => e.venue.city === city);
+    if (category && category !== 'all') filtered = filtered.filter(e => e.venue.category === category);
+
+    res.json({
+        events: filtered,
+        weather: GLOBAL_CACHE.weather || [],
+        timestamp: GLOBAL_CACHE.timestamp,
+        nextScan: GLOBAL_CACHE.nextScan,
+        isScanning: GLOBAL_CACHE.isScanning,
+        total: GLOBAL_CACHE.events.length
+    });
+});
+
+// Legacy SSE endpoint (kept for internal use / live log monitoring)
 app.get('/scrape', (req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
 
-    const { city, category } = req.query;
-
     CLIENTS.push(res);
-
     const pingId = setInterval(() => res.write(': keepalive\n\n'), 15000);
-
     req.on('close', () => {
         clearInterval(pingId);
         CLIENTS = CLIENTS.filter(c => c !== res);
     });
 
-    res.write(`data: ${JSON.stringify({ type: 'log', message: 'Connected to AI Engine.', level: 'info' })}\n\n`);
-
-    if (GLOBAL_CACHE.isScanning) {
-        res.write(`data: ${JSON.stringify({ type: 'log', message: 'Gemini is analyzing sources...', level: 'warn' })}\n\n`);
-    } else if (GLOBAL_CACHE.timestamp) {
-        // const agos = Math.floor((Date.now() - new Date(GLOBAL_CACHE.timestamp)) / 60000);
-        res.write(`data: ${JSON.stringify({ type: 'log', message: 'Serving AI-Verified Results.', level: 'success' })}\n\n`);
-    } else {
-        res.write(`data: ${JSON.stringify({ type: 'log', message: 'First scan pending... Please wait.', level: 'warn' })}\n\n`);
-    }
-
-    // Filter Cache
-    let filtered = GLOBAL_CACHE.events || [];
-    if (city && city !== 'all') filtered = filtered.filter(e => e.venue.city === city);
-    if (category && category !== 'all') filtered = filtered.filter(e => e.venue.category === category);
-
-    // Send Result
-    res.write(`data: ${JSON.stringify({ type: 'result', events: filtered, weather: GLOBAL_CACHE.weather, timestamp: GLOBAL_CACHE.timestamp })}\n\n`);
-
-    // res.write('event: close\ndata: close\n\n'); // Removed as clients are managed by CLIENTS array
-    // res.end(); // Removed as clients are managed by CLIENTS array
+    // Send current state immediately
+    res.write(`data: ${JSON.stringify({ type: 'result', events: GLOBAL_CACHE.events, weather: GLOBAL_CACHE.weather, timestamp: GLOBAL_CACHE.timestamp })}\n\n`);
 });
 
 app.listen(PORT, () => {
