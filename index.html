@@ -17,8 +17,11 @@
 <body>
 
     <div class="glass-container">
-        <!-- Lang Toggle -->
-        <div style="position: absolute; top: 20px; right: 20px;">
+        <!-- Add Event & Lang Toggle -->
+        <div style="position: absolute; top: 20px; right: 20px; display: flex; gap: 10px; align-items: center;">
+            <button class="nav-lang-btn" id="btnAddEvent" style="cursor:pointer; background: rgba(250, 204, 21, 0.2); border-color: rgba(250, 204, 21, 0.4); color: #facc15;">
+                <span style="margin-right:4px;">➕</span><span id="btnTextAddEvent">Add Event</span>
+            </button>
             <a href="#" class="nav-lang-btn" id="langToggle">
                 <span class="lang-flag">🇲🇽</span><span class="lang-text">ES</span>
             </a>
@@ -123,6 +126,81 @@
             </a>
             <span style="color:#4b5563; font-size:9px; font-family:monospace; letter-spacing:2px;">Developed by
                 @yepzhi</span>
+        </div>
+    </div>
+
+    <!-- ADD EVENT MODAL -->
+    <div class="overlay-modal" id="eventModalOverlay">
+        <div class="modal-box">
+            <button class="modal-box-close" id="btnModalClose">✕</button>
+            <h2 id="modalTitle">New Event</h2>
+            <form id="addEventForm">
+                <div class="form-group-event">
+                    <label id="lblFormTitle">Event Title *</label>
+                    <input type="text" id="formTitle" required placeholder="Ej: Concierto de Luis Miguel">
+                </div>
+                
+                <div class="form-row-event">
+                    <div class="form-group-event">
+                        <label id="lblFormCity">City *</label>
+                        <select id="formCity" required>
+                            <option value="Hermosillo">Hermosillo, SON</option>
+                            <option value="Guaymas">Guaymas / San Carlos, SON</option>
+                            <option value="Kino">Bahía de Kino, SON</option>
+                            <option value="Nogales">Nogales, SON</option>
+                            <option value="Obregon">Cd. Obregón, SON</option>
+                            <option value="Tijuana">Tijuana, BC</option>
+                            <option value="Tucson">Tucson, AZ</option>
+                            <option value="Phoenix">Phoenix, AZ</option>
+                        </select>
+                    </div>
+                    <div class="form-group-event">
+                        <label id="lblFormCategory">Category *</label>
+                        <select id="formCategory" required>
+                            <option value="Conciertos">Conciertos</option>
+                            <option value="Fiesta">Fiesta / Vida Nocturna</option>
+                            <option value="Cultura">Cultura / Teatro</option>
+                            <option value="Deportes">Deportes</option>
+                            <option value="Familia">Familiar</option>
+                            <option value="General">Otros / General</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-row-event">
+                    <div class="form-group-event">
+                        <label id="lblFormStartDate">Start Date *</label>
+                        <input type="date" id="formStartDate" required>
+                    </div>
+                    <div class="form-group-event">
+                        <label id="lblFormEndDate">End Date (Optional Range)</label>
+                        <input type="date" id="formEndDate">
+                    </div>
+                </div>
+
+                <div class="form-row-event">
+                    <div class="form-group-event">
+                        <label id="lblFormTime">Time</label>
+                        <input type="text" id="formTime" placeholder="Ej: 8:00 PM">
+                    </div>
+                    <div class="form-group-event">
+                        <label id="lblFormVenue">Venue Name *</label>
+                        <input type="text" id="formVenue" required placeholder="Ej: CUM Hermosillo">
+                    </div>
+                </div>
+
+                <div class="form-group-event">
+                    <label id="lblFormDesc">Description</label>
+                    <textarea id="formDesc" placeholder="Detalles breves del evento..." maxlength="150"></textarea>
+                </div>
+
+                <div class="form-group-event">
+                    <label id="lblFormLink">Ticket Link / URL</label>
+                    <input type="url" id="formLink" placeholder="https://...">
+                </div>
+
+                <button type="submit" class="submit-btn-event" id="btnFormSubmit">Save Event ✦</button>
+            </form>
         </div>
     </div>
 

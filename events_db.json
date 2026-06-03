@@ -449,9 +449,64 @@
       "tags": [
         "Deportes"
       ]
+    },
+    {
+      "id": "manual_1780469509489amddt",
+      "title": "Festival de la Cerveza Hermosillo 2026",
+      "date": "2026-06-10",
+      "endDate": "2026-06-12",
+      "time": "5:00 PM",
+      "venue": {
+        "name": "Parque La Ruina",
+        "city": "Hermosillo",
+        "category": "Fiesta",
+        "url": "https://yepzhi.com/events/cerveza"
+      },
+      "description": "El mejor festival de cerveza artesanal en Sonora.",
+      "link": "https://yepzhi.com/events/cerveza",
+      "aiVerified": false,
+      "tags": [
+        "Fiesta"
+      ]
     }
   ],
-  "weather": [],
-  "timestamp": "2026-03-15T07:10:06.084Z",
-  "nextScan": 1773936110991
+  "weather": [
+    {
+      "date": "2026-06-02",
+      "max": 40,
+      "min": 21
+    },
+    {
+      "date": "2026-06-03",
+      "max": 39,
+      "min": 21
+    },
+    {
+      "date": "2026-06-04",
+      "max": 38,
+      "min": 20
+    },
+    {
+      "date": "2026-06-05",
+      "max": 37,
+      "min": 25
+    },
+    {
+      "date": "2026-06-06",
+      "max": 37,
+      "min": 26
+    },
+    {
+      "date": "2026-06-07",
+      "max": 37,
+      "min": 25
+    },
+    {
+      "date": "2026-06-08",
+      "max": 38,
+      "min": 23
+    }
+  ],
+  "timestamp": "2026-06-03T06:51:49.489Z",
+  "nextScan": 1780728708838
 }

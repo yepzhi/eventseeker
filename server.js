@@ -159,7 +159,8 @@ async function performDeepResearch() {
         Return a valid JSON object with an "events" array.
         Each event must verify:
         - title: String (Spanish)
-        - date: String (YYYY-MM-DD or "Upcoming")
+        - date: String (Start Date, YYYY-MM-DD or "Upcoming")
+        - endDate: String (End Date, YYYY-MM-DD, optional, only if the event spans a range of multiple days. Otherwise omit or set to null)
         - time: String (e.g. "8:00 PM")
         - location: String (Specific Venue Name, e.g. "CUM", "Expo Forum", "Teatro". NEVER use "Hermosillo" or "Sonora" as location)
         - category: One of ["Conciertos", "Deportes", "Cultura", "Familia", "Fiesta", "General"]
@@ -241,6 +242,7 @@ function processAndMergeEvents(newEvents, log) {
                 id: 'gen_' + Date.now() + Math.random(),
                 title: evt.title,
                 date: evt.date,
+                endDate: evt.endDate || null,
                 time: evt.time || 'TBD',
                 venue: {
                     name: evt.location || 'Ubicación por definir',
@@ -321,7 +323,8 @@ async function analyzeWithGemini(text, venueContext) {
     Return a JSON object with an "events" array.
     Each event must have:
     - title: String (Clean title)
-    - date: String (YYYY-MM-DD or "Upcoming")
+    - date: String (Start Date, YYYY-MM-DD or "Upcoming")
+    - endDate: String (End Date, YYYY-MM-DD, optional, only if the event spans a range of multiple days. Otherwise omit or set to null)
     - description: String (Short summary, max 100 chars)
     
     If it's a login page, error, or purely generic info, return {"events": []}.
@@ -427,6 +430,57 @@ async function ingestKnowledgeBase() {
         console.error(`[System] Failed to ingest KB: ${e.message}`);
     }
 }
+
+// --- REST ENDPOINT: Create a manual event ---
+app.post('/events', (req, res) => {
+    const { title, date, endDate, time, venueName, venueCity, venueCategory, description, link } = req.body;
+
+    if (!title || !date || !venueName || !venueCity || !venueCategory) {
+        return res.status(400).json({ error: "Missing required fields (title, date, venueName, venueCity, venueCategory)" });
+    }
+
+    // Validate Start Date
+    const dStart = new Date(date);
+    if (isNaN(dStart.getTime())) {
+        return res.status(400).json({ error: "Invalid start date format" });
+    }
+
+    // Validate End Date if present
+    let finalEndDate = endDate || null;
+    if (endDate) {
+        const dEnd = new Date(endDate);
+        if (isNaN(dEnd.getTime())) {
+            return res.status(400).json({ error: "Invalid end date format" });
+        }
+        if (dEnd < dStart) {
+            return res.status(400).json({ error: "End date cannot be before start date" });
+        }
+    }
+
+    const newEvent = {
+        id: 'manual_' + Date.now() + Math.random().toString(36).substring(2, 7),
+        title: title.trim(),
+        date: date, // YYYY-MM-DD
+        endDate: finalEndDate, // YYYY-MM-DD or null
+        time: time ? time.trim() : 'TBD',
+        venue: {
+            name: venueName.trim(),
+            city: venueCity.trim(),
+            category: venueCategory.trim(),
+            url: link ? link.trim() : ''
+        },
+        description: description ? description.trim() : '',
+        link: link ? link.trim() : '',
+        aiVerified: false, // manual upload
+        tags: [venueCategory.trim()]
+    };
+
+    GLOBAL_CACHE.events.push(newEvent);
+    GLOBAL_CACHE.timestamp = new Date().toISOString();
+    saveCache();
+
+    res.status(201).json(newEvent);
+});
 
 // --- REST ENDPOINT: Returns cached events instantly ---
 app.get('/events', (req, res) => {

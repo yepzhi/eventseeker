@@ -22,7 +22,21 @@ const translations = {
         updatedAgo: "Updated {min} minutes ago",
         syncError: "Sync Error",
         footerLine1: "v2.2 • Do you like this? 💙",
-        footerLine2: "learn more here"
+        footerLine2: "learn more here",
+        btnTextAddEvent: "Add Event",
+        modalTitle: "Add New Event",
+        lblFormTitle: "Event Title *",
+        lblFormCity: "City *",
+        lblFormCategory: "Category *",
+        lblFormStartDate: "Start Date *",
+        lblFormEndDate: "End Date (Optional Range)",
+        lblFormTime: "Time / Hour",
+        lblFormVenue: "Venue Name *",
+        lblFormDesc: "Description (Max 150 chars)",
+        lblFormLink: "Ticket Link / URL (Optional)",
+        btnFormSubmit: "Save Event ✦",
+        alertSuccess: "Event saved successfully!",
+        alertError: "Error saving event: "
     },
     es: {
         subtitle: "Búsqueda automática de eventos en la H City!",
@@ -47,7 +61,21 @@ const translations = {
         updatedAgo: "Actualizado hace {min} minutos",
         syncError: "Error de Sincronización",
         footerLine1: "v2.2 • ¿Te gusta esto? 💙",
-        footerLine2: "conoce más aquí"
+        footerLine2: "conoce más aquí",
+        btnTextAddEvent: "Agregar Evento",
+        modalTitle: "Agregar Nuevo Evento",
+        lblFormTitle: "Título del Evento *",
+        lblFormCity: "Ciudad *",
+        lblFormCategory: "Categoría *",
+        lblFormStartDate: "Fecha de Inicio *",
+        lblFormEndDate: "Fecha de Fin (Rango Opcional)",
+        lblFormTime: "Hora / Tiempo",
+        lblFormVenue: "Lugar / Venue *",
+        lblFormDesc: "Descripción (Máx 150 caracteres)",
+        lblFormLink: "Enlace de Compra / URL (Opcional)",
+        btnFormSubmit: "Guardar Evento ✦",
+        alertSuccess: "¡Evento guardado con éxito!",
+        alertError: "Error al guardar el evento: "
     }
 };
 
@@ -127,6 +155,43 @@ function updateTexts() {
     const footerLine2 = document.getElementById('footerLine2');
     if (footerLine1) footerLine1.innerText = t.footerLine1;
     if (footerLine2) footerLine2.innerText = t.footerLine2;
+
+    // Form elements
+    const btnTextAddEventEl = document.getElementById('btnTextAddEvent');
+    if (btnTextAddEventEl) btnTextAddEventEl.innerText = t.btnTextAddEvent || 'Add Event';
+    
+    const modalTitleEl = document.getElementById('modalTitle');
+    if (modalTitleEl) modalTitleEl.innerText = t.modalTitle || 'Add New Event';
+
+    const lblFormTitleEl = document.getElementById('lblFormTitle');
+    if (lblFormTitleEl) lblFormTitleEl.innerText = t.lblFormTitle || 'Event Title *';
+
+    const lblFormCityEl = document.getElementById('lblFormCity');
+    if (lblFormCityEl) lblFormCityEl.innerText = t.lblFormCity || 'City *';
+
+    const lblFormCategoryEl = document.getElementById('lblFormCategory');
+    if (lblFormCategoryEl) lblFormCategoryEl.innerText = t.lblFormCategory || 'Category *';
+
+    const lblFormStartDateEl = document.getElementById('lblFormStartDate');
+    if (lblFormStartDateEl) lblFormStartDateEl.innerText = t.lblFormStartDate || 'Start Date *';
+
+    const lblFormEndDateEl = document.getElementById('lblFormEndDate');
+    if (lblFormEndDateEl) lblFormEndDateEl.innerText = t.lblFormEndDate || 'End Date (Optional)';
+
+    const lblFormTimeEl = document.getElementById('lblFormTime');
+    if (lblFormTimeEl) lblFormTimeEl.innerText = t.lblFormTime || 'Time';
+
+    const lblFormVenueEl = document.getElementById('lblFormVenue');
+    if (lblFormVenueEl) lblFormVenueEl.innerText = t.lblFormVenue || 'Venue Name *';
+
+    const lblFormDescEl = document.getElementById('lblFormDesc');
+    if (lblFormDescEl) lblFormDescEl.innerText = t.lblFormDesc || 'Description';
+
+    const lblFormLinkEl = document.getElementById('lblFormLink');
+    if (lblFormLinkEl) lblFormLinkEl.innerText = t.lblFormLink || 'Ticket Link';
+
+    const btnFormSubmitEl = document.getElementById('btnFormSubmit');
+    if (btnFormSubmitEl) btnFormSubmitEl.innerText = t.btnFormSubmit || 'Save Event';
 }
 
 function updateButton() {

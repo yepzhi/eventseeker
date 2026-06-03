@@ -48,6 +48,78 @@ document.addEventListener('DOMContentLoaded', async () => {
     updateServerStatus();
     // Update every minute (UI only)
     setInterval(updateServerStatus, 60000);
+
+    // Modal Open/Close
+    const btnAddEvent = document.getElementById('btnAddEvent');
+    const modalOverlay = document.getElementById('eventModalOverlay');
+    const btnModalClose = document.getElementById('btnModalClose');
+    const addEventForm = document.getElementById('addEventForm');
+
+    if (btnAddEvent && modalOverlay) {
+        btnAddEvent.addEventListener('click', () => {
+            modalOverlay.classList.add('open');
+            const todayStr = new Date().toISOString().split('T')[0];
+            document.getElementById('formStartDate').value = todayStr;
+        });
+    }
+
+    if (btnModalClose && modalOverlay) {
+        btnModalClose.addEventListener('click', () => {
+            modalOverlay.classList.remove('open');
+        });
+    }
+
+    if (modalOverlay) {
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) {
+                modalOverlay.classList.remove('open');
+            }
+        });
+    }
+
+    if (addEventForm) {
+        addEventForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const submitBtn = document.getElementById('btnFormSubmit');
+            if (submitBtn) submitBtn.disabled = true;
+
+            const t = translations[currentLang];
+
+            const payload = {
+                title: document.getElementById('formTitle').value,
+                date: document.getElementById('formStartDate').value,
+                endDate: document.getElementById('formEndDate').value || null,
+                time: document.getElementById('formTime').value,
+                venueName: document.getElementById('formVenue').value,
+                venueCity: document.getElementById('formCity').value,
+                venueCategory: document.getElementById('formCategory').value,
+                description: document.getElementById('formDesc').value,
+                link: document.getElementById('formLink').value
+            };
+
+            try {
+                const res = await fetch(`${API_BASE}/events`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+
+                if (!res.ok) {
+                    const err = await res.json();
+                    throw new Error(err.error || 'Server error');
+                }
+
+                alert(t.alertSuccess || 'Event saved successfully!');
+                addEventForm.reset();
+                modalOverlay.classList.remove('open');
+                filterEvents();
+            } catch (err) {
+                alert((t.alertError || 'Error saving event: ') + err.message);
+            } finally {
+                if (submitBtn) submitBtn.disabled = false;
+            }
+        });
+    }
 });
 
 // SIMULATE SERVER STATE (To be replaced by real fetch to HuggingFace)
@@ -142,7 +214,7 @@ async function filterEvents() {
         }
 
         // Render filtered by date range
-        const filtered = events.filter(ev => checkDateRange(ev.date, currentDateRange));
+        const filtered = events.filter(ev => checkDateRange(ev.date, currentDateRange, ev.endDate));
         renderEvents(filtered, grid);
 
     } catch (err) {
@@ -200,31 +272,64 @@ function updateWeatherUI() {
 // Export for translations.js to update on toggle
 window.updateWeatherUI = updateWeatherUI;
 
-function checkDateRange(eventDateIso, range) {
-    const eventDate = new Date(eventDateIso);
+function checkDateRange(startDateIso, range, endDateIso) {
+    const start = new Date(startDateIso);
+    if (isNaN(start.getTime())) return false;
+
+    const end = endDateIso ? new Date(endDateIso) : start;
     const now = new Date();
 
-    // Normalize "Today" to start of day for comparison
-    const todayStart = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-    const eventDayStart = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+    // todayStart constructed in UTC using local year/month/date
+    const todayStart = new Date(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()));
+    const eventStart = start;
+    const eventEnd = end;
 
-    const diffTime = eventDayStart - todayStart;
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    let windowEndDays = 30;
+    if (range === 'today') windowEndDays = 1;
+    else if (range === '3days') windowEndDays = 3;
+    else if (range === '7days') windowEndDays = 7;
+    else if (range === '30days') windowEndDays = 60; // cover full next month view
 
-    if (range === 'today') {
-        return diffDays <= 1; // Allow 24h window
+    const windowEnd = new Date(todayStart.getTime() + windowEndDays * 24 * 60 * 60 * 1000);
+
+    // Event overlaps with search window if:
+    // Event starts before the window ends, and ends after the window starts
+    return eventStart < windowEnd && eventEnd >= todayStart;
+}
+
+function formatEventDate(startDateStr, endDateStr) {
+    const start = new Date(startDateStr);
+    if (isNaN(start.getTime())) return `<span class="row-month">TBD</span><span class="row-day">—</span>`;
+    
+    if (!endDateStr) {
+        const month = start.toLocaleString('default', { month: 'short', timeZone: 'UTC' }).toUpperCase();
+        const day = start.getUTCDate();
+        return `<span class="row-month">${month}</span><span class="row-day">${day}</span>`;
     }
-    if (range === '3days') {
-        return diffDays <= 3;
+    
+    const end = new Date(endDateStr);
+    if (isNaN(end.getTime()) || start.getTime() === end.getTime()) {
+        const month = start.toLocaleString('default', { month: 'short', timeZone: 'UTC' }).toUpperCase();
+        const day = start.getUTCDate();
+        return `<span class="row-month">${month}</span><span class="row-day">${day}</span>`;
     }
-    if (range === '7days') {
-        return diffDays >= 0 && diffDays <= 7;
+    
+    const startMonthStr = start.toLocaleString('default', { month: 'short', timeZone: 'UTC' }).toUpperCase();
+    const endMonthStr = end.toLocaleString('default', { month: 'short', timeZone: 'UTC' }).toUpperCase();
+    const startDay = start.getUTCDate();
+    const endDay = end.getUTCDate();
+    
+    if (startMonthStr === endMonthStr) {
+        return `
+            <span class="row-month">${startMonthStr}</span>
+            <span class="row-day" style="font-size: 1.1em; line-height: 1.1;">${startDay}-${endDay}</span>
+        `;
+    } else {
+        return `
+            <span class="row-month" style="font-size:0.6em; line-height: 1;">${startMonthStr}-${endMonthStr}</span>
+            <span class="row-day" style="font-size: 0.9em; line-height: 1.1;">${startDay}-${endDay}</span>
+        `;
     }
-    if (range === '30days') {
-        // Extended to 60 days to cover full next month view
-        return diffDays >= 0 && diffDays <= 60;
-    }
-    return true;
 }
 
 function renderEvents(events, container) {
@@ -243,17 +348,14 @@ function renderEvents(events, container) {
         const row = document.createElement('div');
         row.className = 'event-row';
 
-        const dateObj = new Date(ev.date);
-        const month = dateObj.toLocaleString('default', { month: 'short' });
-        const day = dateObj.getDate();
+        const dateHtml = formatEventDate(ev.date, ev.endDate);
 
         // Ensure link is never null/undefined
         const linkHref = ev.link ? ev.link : '#';
 
         row.innerHTML = `
             <div class="row-date">
-                <span class="row-month">${month}</span>
-                <span class="row-day">${day}</span>
+                ${dateHtml}
             </div>
             
             <div class="row-info">
